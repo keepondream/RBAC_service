@@ -15,6 +15,7 @@ func NewRoute(config *utils.Config, handle *handle.Handle) *gin.Engine {
 	r := router.Group("/v1/api")
 
 	r.GET("permissions", handle.ListPermissions)
+	r.POST("permission", handle.CreatePermissions)
 
 	return router
 }
