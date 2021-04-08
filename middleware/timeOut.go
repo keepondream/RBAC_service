@@ -20,6 +20,13 @@ func TimeOut(config *utils.Config) gin.HandlerFunc {
 
 		c.Request = c.Request.WithContext(ctx)
 
+		// 上下文传递是否启用debug, 控制接口输出 developMsg
+		if config.LOG_LEVEL == "debug" {
+			c.Set("debug", true)
+		} else {
+			c.Set("debug", false)
+		}
+
 		c.Next()
 	}
 }

@@ -6,11 +6,12 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 type Option struct {
 	Code       string      `json:"errorCode"`
-	DevelopMsg string      `json:"developMsg"`
+	DevelopMsg string      `json:"developMsg,omitempty"`
 	Msg        string      `json:"msg"`
 	Data       interface{} `json:"data"`
 	Err        error       `json:"-"`
@@ -48,13 +49,14 @@ func Success(c *gin.Context, modOptions ...ModOption) {
 }
 
 func Failed(c *gin.Context, modOptions ...ModOption) {
+	c.GetBool("is_debug")
 	data := []interface{}{}
 	httpCode := http.StatusBadRequest
 
 	option := Option{
-		Code:       Err_No.ErrCode,
+		Code:       Err_Failed.ErrCode,
 		DevelopMsg: "",
-		Msg:        Err_No.ErrMessage,
+		Msg:        Err_Failed.ErrMessage,
 		Data:       data,
 	}
 
@@ -63,10 +65,14 @@ func Failed(c *gin.Context, modOptions ...ModOption) {
 	}
 
 	if option.Err != nil {
-		option.DevelopMsg = option.Err.Error()
+		if c.GetBool("debug") {
+			option.DevelopMsg = option.Err.Error()
+		}
 
 		if e, ok := option.Err.(Errno); ok {
 			option.Code = e.ErrCode
+		} else if _, ok := option.Err.(validator.ValidationErrors); ok {
+			option.Code = Err_HTTP_Param.ErrCode
 		} else if e, ok := option.Err.(net.Error); ok && e.Timeout() {
 			httpCode = http.StatusGatewayTimeout
 		} else if e == sql.ErrNoRows {

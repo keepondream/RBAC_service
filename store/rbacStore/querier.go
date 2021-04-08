@@ -8,6 +8,8 @@ import (
 
 type Querier interface {
 	GetInfoByIDTenant(ctx context.Context, arg GetInfoByIDTenantParams) (RbacCasbinRule, error)
+	ListBySignTenant(ctx context.Context, arg ListBySignTenantParams) ([]RbacCasbinRule, error)
+	TotalBySignTenant(ctx context.Context, arg TotalBySignTenantParams) (int64, error)
 }
 
 var _ Querier = (*Queries)(nil)

@@ -25,6 +25,12 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getInfoByIDTenantStmt, err = db.PrepareContext(ctx, getInfoByIDTenant); err != nil {
 		return nil, fmt.Errorf("error preparing query GetInfoByIDTenant: %w", err)
 	}
+	if q.listBySignTenantStmt, err = db.PrepareContext(ctx, listBySignTenant); err != nil {
+		return nil, fmt.Errorf("error preparing query ListBySignTenant: %w", err)
+	}
+	if q.totalBySignTenantStmt, err = db.PrepareContext(ctx, totalBySignTenant); err != nil {
+		return nil, fmt.Errorf("error preparing query TotalBySignTenant: %w", err)
+	}
 	return &q, nil
 }
 
@@ -33,6 +39,16 @@ func (q *Queries) Close() error {
 	if q.getInfoByIDTenantStmt != nil {
 		if cerr := q.getInfoByIDTenantStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getInfoByIDTenantStmt: %w", cerr)
+		}
+	}
+	if q.listBySignTenantStmt != nil {
+		if cerr := q.listBySignTenantStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listBySignTenantStmt: %w", cerr)
+		}
+	}
+	if q.totalBySignTenantStmt != nil {
+		if cerr := q.totalBySignTenantStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing totalBySignTenantStmt: %w", cerr)
 		}
 	}
 	return err
@@ -75,6 +91,8 @@ type Queries struct {
 	db                    DBTX
 	tx                    *sql.Tx
 	getInfoByIDTenantStmt *sql.Stmt
+	listBySignTenantStmt  *sql.Stmt
+	totalBySignTenantStmt *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
@@ -82,5 +100,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		db:                    tx,
 		tx:                    tx,
 		getInfoByIDTenantStmt: q.getInfoByIDTenantStmt,
+		listBySignTenantStmt:  q.listBySignTenantStmt,
+		totalBySignTenantStmt: q.totalBySignTenantStmt,
 	}
 }

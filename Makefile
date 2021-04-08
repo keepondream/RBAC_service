@@ -47,5 +47,5 @@ check_wire:
 wire: check_wire
 	wire ./wire
 
-run: postgres adminer wire
+run: postgres adminer sqlc_generate wire
 	DB_USER=$(DB_USER) DB_PWD=$(DB_PWD) DB_HOST=$(DB_HOST) DB_PORT=$(DB_PORT) DB_NAME=$(DB_NAME) SERVER_PORT=$(SERVER_PORT) SWAGGER=$(SWAGGER)  go run ./cmd/rbac
