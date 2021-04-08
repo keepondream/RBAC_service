@@ -51,12 +51,16 @@ func NewRBACServer(config *utils.Config, db *sql.DB, handle *handle.Handle, rout
 
 func NewEnforcer(config *utils.Config) (e *casbin.Enforcer) {
 	log.Println("make enforcer ....")
-	a, err := pgadapter.NewAdapter(&pg.Options{
-		Database: config.DB_NAME,
-		User:     config.DB_USER,
-		Password: config.DB_PWD,
-		Addr:     fmt.Sprintf("%s:%s", config.DB_HOST, config.DB_PORT),
-	})
+	a, err := pgadapter.NewAdapterByDB(pg.Connect(
+		&pg.Options{
+			User:     config.DB_USER,
+			Password: config.DB_PWD,
+			Database: config.DB_NAME,
+			Addr:     fmt.Sprintf("%s:%s", config.DB_HOST, config.DB_PORT),
+		},
+	),
+		pgadapter.WithTableName("rbac_casbin_rules"),
+	)
 	if err != nil {
 		log.Fatal("new pgadapter failed err is ", err)
 	}

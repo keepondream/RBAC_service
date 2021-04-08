@@ -25,6 +25,7 @@ type Config struct {
 	ENFORCER_MODEL_FILE string `mapstructure:"ENFORCER_MODEL_FILE"`
 	MIGRATIONS_TABLE    string `mapstructure:"MIGRATIONS_TABLE"`
 	SERVER_PORT         string `mapstructure:"SERVER_PORT"`
+	TIME_OUT            string `mapstructure:"TIME_OUT"`
 }
 
 // LoadConfig configFile ./app.env or ./app.yaml

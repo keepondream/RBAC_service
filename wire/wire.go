@@ -7,6 +7,7 @@ import (
 	"github.com/keepondream/RBAC_service/handle"
 	"github.com/keepondream/RBAC_service/route"
 	"github.com/keepondream/RBAC_service/server"
+	"github.com/keepondream/RBAC_service/service"
 	"github.com/keepondream/RBAC_service/store"
 	"github.com/keepondream/RBAC_service/utils"
 )
@@ -21,6 +22,7 @@ func InitRBACServer(configFile string) (*server.RBACServer, error) {
 		server.NewLogger,
 		handle.NewHandle,
 		route.NewRoute,
+		service.NewService,
 	)
 	return &server.RBACServer{}, nil
 }
