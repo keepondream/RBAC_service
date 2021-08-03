@@ -7,15 +7,15 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-var validate *validator.Validate
+var customValidate *validator.Validate
 
 // NewValidate 构造验证器
 func NewValidate() *validator.Validate {
-	validate = validator.New()
-	validate.RegisterValidation("is_price", ValidatePrice)
-	validate.RegisterValidation("is_username", ValidateUsername)
-	validate.RegisterValidation("is_password", ValidatePassword)
-	return validate
+	customValidate = validator.New()
+	customValidate.RegisterValidation("is_price", ValidatePrice)
+	customValidate.RegisterValidation("is_username", ValidateUsername)
+	customValidate.RegisterValidation("is_password", ValidatePassword)
+	return customValidate
 }
 
 // ValidatePrice 自定义金额验校验

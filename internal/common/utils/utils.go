@@ -23,7 +23,7 @@ func LoadingEnv() {
 	secretFileName := fmt.Sprintf("%s.secret.env", APP_ENV)
 	err := godotenv.Load(envFileName, secretFileName)
 	if err != nil {
-		log.Panicf("Loading env file error : ", err)
+		log.Panicf("Loading env file error : %v ", err)
 	}
 }
 
