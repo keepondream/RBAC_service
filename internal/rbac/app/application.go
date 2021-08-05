@@ -10,18 +10,22 @@ import (
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/schema"
-	"entgo.io/ent/entc/integration/idtype/ent"
-	"github.com/google/wire"
-	"github.com/keepondream/RBAC_service/internal/rbac/adapters/repo"
-	"github.com/keepondream/RBAC_service/internal/rbac/service"
+	"github.com/casbin/casbin/v2"
+	entadapter "github.com/casbin/ent-adapter"
+	entadapterent "github.com/casbin/ent-adapter/ent"
+
+	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent"
+	"github.com/keepondream/RBAC_service/internal/rbac/ports"
 )
 
 type App struct {
-	Service *service.Service
+	HttpServer *ports.HttpServer
 }
 
-func NewApp() *App {
-	return &App{}
+func NewApp(httpServer *ports.HttpServer) *App {
+	return &App{
+		HttpServer: httpServer,
+	}
 }
 
 func NewDB() *sql.DB {
@@ -50,4 +54,33 @@ func NewEntClient(db *sql.DB) *ent.Client {
 	return client
 }
 
-var MenuRepoSet = wire.NewSet(repo.NewMenuRepo, wire.Bind(new(service.MenuService), new(*repo.MenuRepo)))
+func NewEntAdapter(db *sql.DB) *entadapter.Adapter {
+	// 从db变量中构造一个entadapterent.Driver对象。
+	drv := entsql.OpenDB(dialect.Postgres, db)
+	client := entadapterent.NewClient(entadapterent.Driver(drv))
+
+	adapter, err := entadapter.NewAdapterWithClient(client)
+	if err != nil {
+		log.Panicf("init ent adapter err:%v \n", err)
+	}
+
+	return adapter
+}
+
+func NewEnforcer(adapter *entadapter.Adapter) *casbin.Enforcer {
+	casbinModelConfPath := os.Getenv("CASBIN_MODEL_CONF_PATH")
+	e, err := casbin.NewEnforcer(casbinModelConfPath, adapter)
+	if err != nil {
+		log.Panicf("init casbin enforcer failed err:%v \n", err)
+	}
+
+	// 每次运行从据库中重新加载策略。
+	e.LoadPolicy()
+
+	// 启用自动保存,将内存策略同步至数据库
+	e.EnableAutoSave(true)
+
+	return e
+}
+
+// var MenuRepoSet = wire.NewSet(repo.NewMenuRepo, wire.Bind(new(service.MenuService), new(*repo.MenuRepo)))

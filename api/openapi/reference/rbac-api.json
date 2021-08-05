@@ -1,0 +1,651 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "rbac api",
+    "version": "1.0",
+    "summary": "rbac api",
+    "description": "rbac api",
+    "contact": {
+      "name": "WangSx",
+      "email": "402314889@qq.com",
+      "url": "https://github.com/keepondream/RBAC_service"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000"
+    }
+  ],
+  "paths": {
+    "/routes": {
+      "get": {
+        "summary": "路由列表",
+        "tags": [],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/RouteList"
+          }
+        },
+        "operationId": "get-routes",
+        "description": "路由列表\nquery: 默认name查询,其余字段多维度",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          },
+          {
+            "$ref": "#/components/parameters/order"
+          },
+          {
+            "$ref": "#/components/parameters/sort"
+          },
+          {
+            "$ref": "#/components/parameters/query"
+          },
+          {
+            "$ref": "#/components/parameters/start_time"
+          },
+          {
+            "$ref": "#/components/parameters/end_time"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          },
+          "description": ""
+        }
+      },
+      "post": {
+        "summary": "创建路由",
+        "operationId": "post-routes",
+        "responses": {
+          "201": {
+            "$ref": "#/components/responses/RouteDetail"
+          }
+        },
+        "description": "创建路由",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/ItemTenant"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "路由名称"
+                      },
+                      "uri": {
+                        "type": "string",
+                        "description": "路由路径,拦截URL,path 例如: /users/:id"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "uri"
+                    ]
+                  },
+                  {
+                    "$ref": "#/components/schemas/ItemMethod"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ItemData"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/routes/{id}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "路由ID"
+        }
+      ],
+      "get": {
+        "summary": "路由详情",
+        "tags": [],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/RouteDetail"
+          }
+        },
+        "operationId": "get-routes-id",
+        "description": "路由详情",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "修改路由信息",
+        "operationId": "patch-routes-id",
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/RouteDetail"
+          }
+        },
+        "description": "修改路由信息",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "tenant": {
+                    "$ref": "#/components/schemas/ItemTenant"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "路由名称"
+                  },
+                  "uri": {
+                    "type": "string",
+                    "description": "路由路径,path,拦截URL"
+                  },
+                  "method": {
+                    "$ref": "#/components/schemas/ItemMethod"
+                  },
+                  "data": {
+                    "$ref": "#/components/schemas/ItemData"
+                  }
+                }
+              },
+              "examples": {}
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "删除路由",
+        "operationId": "delete-routes-id",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "description": "删除路由"
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "User": {
+        "title": "User",
+        "type": "object",
+        "description": "",
+        "examples": [
+          {
+            "id": 142,
+            "firstName": "Alice",
+            "lastName": "Smith",
+            "email": "alice.smith@gmail.com",
+            "dateOfBirth": "1997-10-31",
+            "emailVerified": true,
+            "signUpDate": "2019-08-24"
+          }
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Unique identifier for the given user."
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date",
+            "example": "1997-10-31"
+          },
+          "emailVerified": {
+            "type": "boolean",
+            "description": "Set to true if the user's email has been verified."
+          },
+          "createDate": {
+            "type": "string",
+            "format": "date",
+            "description": "The date that the user was created."
+          }
+        },
+        "required": [
+          "id",
+          "firstName",
+          "lastName",
+          "email",
+          "emailVerified"
+        ]
+      },
+      "Route": {
+        "title": "Route",
+        "examples": [],
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "description": "路由ID",
+                "type": "string"
+              },
+              "name": {
+                "type": "string",
+                "description": "路由名称"
+              },
+              "uri": {
+                "type": "string",
+                "description": "拦截URL"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "uri"
+            ]
+          },
+          {
+            "$ref": "#/components/schemas/ItemMethod"
+          },
+          {
+            "$ref": "#/components/schemas/ItemTenant"
+          },
+          {
+            "$ref": "#/components/schemas/ItemData"
+          },
+          {
+            "$ref": "#/components/schemas/ItemCreatedat"
+          },
+          {
+            "$ref": "#/components/schemas/ItemUpdatedat"
+          }
+        ]
+      },
+      "Permission": {
+        "title": "Permission",
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string",
+                "description": "权限名称"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ]
+          },
+          {
+            "$ref": "#/components/schemas/ItemTenant"
+          },
+          {
+            "$ref": "#/components/schemas/ItemData"
+          },
+          {
+            "$ref": "#/components/schemas/ItemCreatedat"
+          },
+          {
+            "$ref": "#/components/schemas/ItemUpdatedat"
+          }
+        ]
+      },
+      "Node": {
+        "title": "Node",
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string",
+                "description": "节点名称"
+              },
+              "parent_id": {
+                "type": "string",
+                "description": "父节点ID"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "parent_id"
+            ]
+          },
+          {
+            "$ref": "#/components/schemas/ItemData"
+          },
+          {
+            "$ref": "#/components/schemas/ItemTenant"
+          },
+          {
+            "$ref": "#/components/schemas/ItemType"
+          },
+          {
+            "$ref": "#/components/schemas/ItemCreatedat"
+          },
+          {
+            "$ref": "#/components/schemas/ItemUpdatedat"
+          }
+        ]
+      },
+      "Group": {
+        "title": "Group",
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string",
+                "description": "分组名称"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ]
+          },
+          {
+            "$ref": "#/components/schemas/ItemTenant"
+          },
+          {
+            "$ref": "#/components/schemas/ItemType"
+          },
+          {
+            "$ref": "#/components/schemas/ItemData"
+          },
+          {
+            "$ref": "#/components/schemas/ItemCreatedat"
+          },
+          {
+            "$ref": "#/components/schemas/ItemUpdatedat"
+          }
+        ]
+      },
+      "ItemMethod": {
+        "title": "ItemMethod",
+        "type": "object",
+        "properties": {
+          "method": {
+            "type": "string",
+            "description": "URL请求方式 GET,HEAD,POST,PUT,PATCH,DELETE,CONNECT,OPTIONS,TRACE",
+            "enum": [
+              "GET",
+              "HEAD",
+              "POST",
+              "PUT",
+              "PATCH",
+              "DELETE",
+              "CONNECT",
+              "OPTIONS",
+              "TRACE"
+            ],
+            "example": "GET",
+            "default": "GET"
+          }
+        },
+        "required": [
+          "method"
+        ]
+      },
+      "ItemTenant": {
+        "title": "ItemTenant",
+        "type": "object",
+        "properties": {
+          "tenant": {
+            "type": "string",
+            "description": "域标识,可自定义用于区分哪个平台使用",
+            "example": "domain1"
+          }
+        },
+        "required": [
+          "tenant"
+        ]
+      },
+      "ItemData": {
+        "title": "ItemData",
+        "type": "object",
+        "examples": [],
+        "properties": {
+          "data": {
+            "description": "自定义json数据",
+            "oneOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
+            ]
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "ItemCreatedat": {
+        "title": "ItemCreatedat",
+        "type": "object",
+        "properties": {
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2021-01-01T16:00:00Z",
+            "description": "创建时间 零时区时间格式: YYYY-MM-DDTHH:MM:SSZ"
+          }
+        },
+        "required": [
+          "created_at"
+        ]
+      },
+      "ItemUpdatedat": {
+        "title": "ItemUpdatedat",
+        "type": "object",
+        "properties": {
+          "updated_at": {
+            "type": "string",
+            "description": "更新时间 零时区时间格式: YYYY-MM-DDTHH:MM:SSZ",
+            "format": "date-time",
+            "example": "2021-01-02T00:00:00Z"
+          }
+        },
+        "required": [
+          "updated_at"
+        ]
+      },
+      "ItemType": {
+        "title": "ItemType",
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "节点或者分组的类型可自定义 例如 role:角色, menu:菜单, element:页面元素 ...等等",
+            "example": "role"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      }
+    },
+    "parameters": {
+      "page": {
+        "name": "page",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "default": "1",
+          "example": "1"
+        },
+        "description": "页码"
+      },
+      "per_page": {
+        "name": "per_page",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "default": "20",
+          "example": "20",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "description": "分页数量 默认20, 最大100"
+      },
+      "order": {
+        "name": "order",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "default": "desc",
+          "example": "desc"
+        },
+        "description": "排序方式 只支持 asc 或者 desc"
+      },
+      "query": {
+        "name": "query",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "example": "route1 route2 tenant:domain1 tenant:domain2"
+        },
+        "description": "- 查询关键字以空格分割,多个维度用冒号连接关键字,每个关键字需要用encode `示例: 查询默认关键字为name \"route1 route2\"两个名称的路由, 域标识为 domain1 或者 domain2 的数据`  ``` http://host.com?query=${encodeURIComponent('route1')} ${encodeURIComponent('route2')} tenant:${encodeURIComponent('domain1')} tenant:${encodeURIComponent('domain2')} ```"
+      },
+      "sort": {
+        "name": "sort",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "example": "create_at,update_at"
+        },
+        "description": "排序字段 多个组合用逗号分隔 示例: id,name"
+      },
+      "start_time": {
+        "name": "start_time",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2021-01-01T16:00:00Z"
+        },
+        "description": "起始时间 零时区时间格式: YYYY-MM-DDTHH:MM:SSZ"
+      },
+      "end_time": {
+        "name": "end_time",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2021-01-02T15:59:59Z"
+        },
+        "description": "结束时间 零时区时间格式: YYYY-MM-DDTHH:MM:SSZ"
+      }
+    },
+    "responses": {
+      "RouteList": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "total": {
+                  "type": "string"
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Route"
+                  }
+                }
+              },
+              "required": [
+                "total",
+                "items"
+              ]
+            },
+            "examples": {
+              "example-1": {
+                "value": {
+                  "total": "string",
+                  "items": [
+                    {
+                      "id": "string",
+                      "name": "string",
+                      "uri": "string",
+                      "method": "GET",
+                      "tenant": "domain1",
+                      "data": {},
+                      "created_at": "2021-01-01T16:00:00Z",
+                      "updated_at": "2021-01-02T00:00:00Z"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "RouteDetail": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Route"
+            }
+          }
+        }
+      }
+    }
+  }
+}

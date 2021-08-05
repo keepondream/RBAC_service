@@ -1,16 +1,25 @@
 package ports
 
 import (
+	"fmt"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/keepondream/RBAC_service/internal/common/utils"
 )
 
 type HttpServer struct {
-	Validate *validator.Validate
+	Validate     *validator.Validate
+	RouteService Router
 }
 
-func NewHttpServer() *HttpServer {
+func NewHttpServer(routeService Router) *HttpServer {
 	return &HttpServer{
-		Validate: utils.NewValidate(),
+		Validate:     utils.NewValidate(),
+		RouteService: routeService,
 	}
+}
+
+func (h *HttpServer) Test() {
+
+	fmt.Println("test  in http of ports")
 }

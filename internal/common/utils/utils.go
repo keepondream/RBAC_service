@@ -100,11 +100,11 @@ func GetQuery(r *http.Request) map[string][]string {
 	return ParseQuery(query)
 }
 
-// ParseOrder 解析排序字段
-func ParseOrder(order string) []string {
+// ParseSort 解析排序字段
+func ParseSort(sort string) []string {
 	fields := []string{}
-	orderArr := strings.Split(order, ",")
-	for _, v := range orderArr {
+	sortArr := strings.Split(sort, ",")
+	for _, v := range sortArr {
 		if v != "" {
 			fields = append(fields, v)
 		}
@@ -113,25 +113,25 @@ func ParseOrder(order string) []string {
 	return fields
 }
 
-// GetOrder 解析http.Request中 order 排序字段
-func GetOrder(r *http.Request) []string {
+// GetOrder 解析http.Request中 order  排序方式, 支持 asc , desc , 默认:desc
+func GetOrder(r *http.Request) string {
 	order := r.URL.Query().Get("order")
 	return ParseOrder(order)
 }
 
-// ParseSort 解析排序方式 支持 asc , desc , 默认:desc
-func ParseSort(sort string) string {
-	sortVal := "desc"
+// ParseOrder 解析排序方式 支持 asc , desc , 默认:desc
+func ParseOrder(order string) string {
+	orderVal := "desc"
 
-	if sort == "asc" || sort == "desc" {
-		sortVal = sort
+	if order == "asc" || order == "desc" {
+		orderVal = order
 	}
 
-	return sortVal
+	return orderVal
 }
 
-// GetSort 解析http.Request中 sort 排序方式, 支持 asc , desc , 默认:desc
-func GetSort(r *http.Request) string {
+// GetSort 解析http.Request中 sort 排序字段
+func GetSort(r *http.Request) []string {
 	sort := r.URL.Query().Get("sort")
 	return ParseSort(sort)
 }
