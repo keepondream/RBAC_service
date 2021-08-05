@@ -3,9 +3,11 @@ module github.com/keepondream/RBAC_service/internal/common
 go 1.16
 
 require (
+	github.com/deepmap/oapi-codegen v1.8.2
 	github.com/fvbock/endless v0.0.0-20170109170031-447134032cb6
 	github.com/gin-gonic/gin v1.7.2
 	github.com/go-chi/chi/v5 v5.0.3
+	github.com/go-chi/cors v1.2.0
 	github.com/go-chi/render v1.0.1
 	github.com/go-pg/pg/v10 v10.10.3
 	github.com/go-playground/validator/v10 v10.8.0

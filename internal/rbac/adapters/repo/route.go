@@ -21,8 +21,8 @@ func NewRoute(r *Repo) *Route {
 	}
 }
 
-func (r *Route) Ent2Port(model *ent.Route) *ports.RouteDetail {
-	return &ports.RouteDetail{
+func (r *Route) Ent2Port(model *ent.Route) *ports.Route {
+	return &ports.Route{
 		Id:   cast.ToString(model.ID),
 		Name: model.Name,
 		Uri:  model.URI,
@@ -50,7 +50,9 @@ func (r *Route) GetById(ctx context.Context, id string) (*ports.RouteDetail, err
 		return nil, err
 	}
 
-	return r.Ent2Port(model), nil
+	portsRoute := r.Ent2Port(model)
+
+	return (*ports.RouteDetail)(portsRoute), nil
 }
 
 func (r *Route) List(ctx context.Context, params ports.GetRoutesParams) (*ports.RouteList, error) {
@@ -105,11 +107,22 @@ func (r *Route) List(ctx context.Context, params ports.GetRoutesParams) (*ports.
 
 	total := modelQuery.CountX(ctx)
 	list.Total = cast.ToString(total)
-	// TODO: 更新common parseSort方法
 	if params.Sort != nil {
-		_ = offset
-		_ = limit
-		// fields := utils.ParseSort(sort string)
+		fields := utils.ParseSort(string(*params.Sort))
+		if string(params.Order) == string(ports.Asc) {
+			modelQuery.Order(ent.Asc(fields...))
+		} else {
+			modelQuery.Order(ent.Desc(fields...))
+		}
+	} else {
+		modelQuery.Order(ent.Desc(route.FieldID))
+	}
+
+	models := modelQuery.Offset(offset).Limit(limit).AllX(ctx)
+
+	for _, v := range models {
+		portsRoute := r.Ent2Port(v)
+		list.Items = append(list.Items, *portsRoute)
 	}
 
 	panic("not implemented") // TODO: Implement
@@ -142,7 +155,8 @@ func (r *Route) Update(ctx context.Context, params ports.PatchRoutesIdJSONBody, 
 		return nil, err
 	}
 
-	return r.Ent2Port(model), nil
+	portsRoute := r.Ent2Port(model)
+	return (*ports.RouteDetail)(portsRoute), nil
 }
 
 func (r *Route) Create(ctx context.Context, params ports.PostRoutesJSONBody) (*ports.RouteDetail, error) {
@@ -156,5 +170,6 @@ func (r *Route) Create(ctx context.Context, params ports.PostRoutesJSONBody) (*p
 		return nil, err
 	}
 
-	return r.Ent2Port(model), nil
+	portsRoute := r.Ent2Port(model)
+	return (*ports.RouteDetail)(portsRoute), nil
 }

@@ -11,6 +11,6 @@ require (
 	github.com/go-playground/validator/v10 v10.8.0
 	github.com/go-redis/redis/v8 v8.11.0
 	github.com/google/wire v0.5.0
-	github.com/keepondream/RBAC_service/internal/common v0.0.0-20210803020644-ff3cddb97d16
+	github.com/keepondream/RBAC_service/internal/common v0.0.0-20210805074416-99d7980e68af
 	github.com/spf13/cast v1.4.0
 )

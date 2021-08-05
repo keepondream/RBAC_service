@@ -8,6 +8,7 @@ import (
 	"github.com/fvbock/endless"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -43,9 +44,15 @@ func RunHTTPServerOnAddr(addr, baseUrl string, createHandler func(router chi.Rou
 }
 
 func setMiddlewares(router *chi.Mux) {
+	router.Use(middleware.Logger)
+	// 跨域中间件,全开放
+	router.Use(cors.Handler(cors.Options{
+		ExposedHeaders:   []string{"*"},
+		AllowCredentials: true,
+		MaxAge:           86400,
+	}))
 	router.Use(middleware.RequestID)
 	router.Use(middleware.RealIP)
-	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.NoCache)
 }
