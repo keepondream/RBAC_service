@@ -90,6 +90,25 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// GetPermissions request  with any body
+	GetPermissionsWithBody(ctx context.Context, params *GetPermissionsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PostPermissions request  with any body
+	PostPermissionsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PostPermissions(ctx context.Context, body PostPermissionsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeletePermissionsId request
+	DeletePermissionsId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetPermissionsId request  with any body
+	GetPermissionsIdWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PatchPermissionsId request  with any body
+	PatchPermissionsIdWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PatchPermissionsId(ctx context.Context, id string, body PatchPermissionsIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetRoutes request  with any body
 	GetRoutesWithBody(ctx context.Context, params *GetRoutesParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -108,6 +127,90 @@ type ClientInterface interface {
 	PatchRoutesIdWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	PatchRoutesId(ctx context.Context, id string, body PatchRoutesIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) GetPermissionsWithBody(ctx context.Context, params *GetPermissionsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetPermissionsRequestWithBody(c.Server, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostPermissionsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostPermissionsRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostPermissions(ctx context.Context, body PostPermissionsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostPermissionsRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeletePermissionsId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeletePermissionsIdRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetPermissionsIdWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetPermissionsIdRequestWithBody(c.Server, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PatchPermissionsIdWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPatchPermissionsIdRequestWithBody(c.Server, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PatchPermissionsId(ctx context.Context, id string, body PatchPermissionsIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPatchPermissionsIdRequest(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 func (c *Client) GetRoutesWithBody(ctx context.Context, params *GetRoutesParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -192,6 +295,300 @@ func (c *Client) PatchRoutesId(ctx context.Context, id string, body PatchRoutesI
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+// NewGetPermissionsRequestWithBody generates requests for GetPermissions with any type of body
+func NewGetPermissionsRequestWithBody(server string, params *GetPermissionsParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/permissions")
+	if operationPath[0] == '/' {
+		operationPath = operationPath[1:]
+	}
+	operationURL := url.URL{
+		Path: operationPath,
+	}
+
+	queryURL := serverURL.ResolveReference(&operationURL)
+
+	queryValues := queryURL.Query()
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, params.Page); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
+	}
+
+	if params.PerPage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "order", runtime.ParamLocationQuery, params.Order); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
+	}
+
+	if params.Query != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "query", runtime.ParamLocationQuery, *params.Query); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Sort != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sort", runtime.ParamLocationQuery, *params.Sort); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.StartTime != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "start_time", runtime.ParamLocationQuery, *params.StartTime); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.EndTime != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "end_time", runtime.ParamLocationQuery, *params.EndTime); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPostPermissionsRequest calls the generic PostPermissions builder with application/json body
+func NewPostPermissionsRequest(server string, body PostPermissionsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostPermissionsRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewPostPermissionsRequestWithBody generates requests for PostPermissions with any type of body
+func NewPostPermissionsRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/permissions")
+	if operationPath[0] == '/' {
+		operationPath = operationPath[1:]
+	}
+	operationURL := url.URL{
+		Path: operationPath,
+	}
+
+	queryURL := serverURL.ResolveReference(&operationURL)
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeletePermissionsIdRequest generates requests for DeletePermissionsId
+func NewDeletePermissionsIdRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/permissions/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = operationPath[1:]
+	}
+	operationURL := url.URL{
+		Path: operationPath,
+	}
+
+	queryURL := serverURL.ResolveReference(&operationURL)
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetPermissionsIdRequestWithBody generates requests for GetPermissionsId with any type of body
+func NewGetPermissionsIdRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/permissions/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = operationPath[1:]
+	}
+	operationURL := url.URL{
+		Path: operationPath,
+	}
+
+	queryURL := serverURL.ResolveReference(&operationURL)
+
+	req, err := http.NewRequest("GET", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPatchPermissionsIdRequest calls the generic PatchPermissionsId builder with application/json body
+func NewPatchPermissionsIdRequest(server string, id string, body PatchPermissionsIdJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPatchPermissionsIdRequestWithBody(server, id, "application/json", bodyReader)
+}
+
+// NewPatchPermissionsIdRequestWithBody generates requests for PatchPermissionsId with any type of body
+func NewPatchPermissionsIdRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/permissions/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = operationPath[1:]
+	}
+	operationURL := url.URL{
+		Path: operationPath,
+	}
+
+	queryURL := serverURL.ResolveReference(&operationURL)
+
+	req, err := http.NewRequest("PATCH", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
 }
 
 // NewGetRoutesRequestWithBody generates requests for GetRoutes with any type of body
@@ -531,6 +928,25 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// GetPermissions request  with any body
+	GetPermissionsWithBodyWithResponse(ctx context.Context, params *GetPermissionsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetPermissionsResponse, error)
+
+	// PostPermissions request  with any body
+	PostPermissionsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostPermissionsResponse, error)
+
+	PostPermissionsWithResponse(ctx context.Context, body PostPermissionsJSONRequestBody, reqEditors ...RequestEditorFn) (*PostPermissionsResponse, error)
+
+	// DeletePermissionsId request
+	DeletePermissionsIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeletePermissionsIdResponse, error)
+
+	// GetPermissionsId request  with any body
+	GetPermissionsIdWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetPermissionsIdResponse, error)
+
+	// PatchPermissionsId request  with any body
+	PatchPermissionsIdWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchPermissionsIdResponse, error)
+
+	PatchPermissionsIdWithResponse(ctx context.Context, id string, body PatchPermissionsIdJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchPermissionsIdResponse, error)
+
 	// GetRoutes request  with any body
 	GetRoutesWithBodyWithResponse(ctx context.Context, params *GetRoutesParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetRoutesResponse, error)
 
@@ -549,6 +965,115 @@ type ClientWithResponsesInterface interface {
 	PatchRoutesIdWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchRoutesIdResponse, error)
 
 	PatchRoutesIdWithResponse(ctx context.Context, id string, body PatchRoutesIdJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchRoutesIdResponse, error)
+}
+
+type GetPermissionsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PermissionListResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetPermissionsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetPermissionsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PostPermissionsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PermissionInfoResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r PostPermissionsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostPermissionsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeletePermissionsIdResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeletePermissionsIdResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeletePermissionsIdResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetPermissionsIdResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PermissionInfoResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetPermissionsIdResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetPermissionsIdResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PatchPermissionsIdResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PermissionInfoResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r PatchPermissionsIdResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PatchPermissionsIdResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
 }
 
 type GetRoutesResponse struct {
@@ -715,6 +1240,67 @@ func (r PatchRoutesIdResponse) StatusCode() int {
 	return 0
 }
 
+// GetPermissionsWithBodyWithResponse request with arbitrary body returning *GetPermissionsResponse
+func (c *ClientWithResponses) GetPermissionsWithBodyWithResponse(ctx context.Context, params *GetPermissionsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetPermissionsResponse, error) {
+	rsp, err := c.GetPermissionsWithBody(ctx, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetPermissionsResponse(rsp)
+}
+
+// PostPermissionsWithBodyWithResponse request with arbitrary body returning *PostPermissionsResponse
+func (c *ClientWithResponses) PostPermissionsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostPermissionsResponse, error) {
+	rsp, err := c.PostPermissionsWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostPermissionsResponse(rsp)
+}
+
+func (c *ClientWithResponses) PostPermissionsWithResponse(ctx context.Context, body PostPermissionsJSONRequestBody, reqEditors ...RequestEditorFn) (*PostPermissionsResponse, error) {
+	rsp, err := c.PostPermissions(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostPermissionsResponse(rsp)
+}
+
+// DeletePermissionsIdWithResponse request returning *DeletePermissionsIdResponse
+func (c *ClientWithResponses) DeletePermissionsIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeletePermissionsIdResponse, error) {
+	rsp, err := c.DeletePermissionsId(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeletePermissionsIdResponse(rsp)
+}
+
+// GetPermissionsIdWithBodyWithResponse request with arbitrary body returning *GetPermissionsIdResponse
+func (c *ClientWithResponses) GetPermissionsIdWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetPermissionsIdResponse, error) {
+	rsp, err := c.GetPermissionsIdWithBody(ctx, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetPermissionsIdResponse(rsp)
+}
+
+// PatchPermissionsIdWithBodyWithResponse request with arbitrary body returning *PatchPermissionsIdResponse
+func (c *ClientWithResponses) PatchPermissionsIdWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchPermissionsIdResponse, error) {
+	rsp, err := c.PatchPermissionsIdWithBody(ctx, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePatchPermissionsIdResponse(rsp)
+}
+
+func (c *ClientWithResponses) PatchPermissionsIdWithResponse(ctx context.Context, id string, body PatchPermissionsIdJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchPermissionsIdResponse, error) {
+	rsp, err := c.PatchPermissionsId(ctx, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePatchPermissionsIdResponse(rsp)
+}
+
 // GetRoutesWithBodyWithResponse request with arbitrary body returning *GetRoutesResponse
 func (c *ClientWithResponses) GetRoutesWithBodyWithResponse(ctx context.Context, params *GetRoutesParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetRoutesResponse, error) {
 	rsp, err := c.GetRoutesWithBody(ctx, params, contentType, body, reqEditors...)
@@ -774,6 +1360,129 @@ func (c *ClientWithResponses) PatchRoutesIdWithResponse(ctx context.Context, id 
 		return nil, err
 	}
 	return ParsePatchRoutesIdResponse(rsp)
+}
+
+// ParseGetPermissionsResponse parses an HTTP response from a GetPermissionsWithResponse call
+func ParseGetPermissionsResponse(rsp *http.Response) (*GetPermissionsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetPermissionsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PermissionListResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePostPermissionsResponse parses an HTTP response from a PostPermissionsWithResponse call
+func ParsePostPermissionsResponse(rsp *http.Response) (*PostPermissionsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostPermissionsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PermissionInfoResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeletePermissionsIdResponse parses an HTTP response from a DeletePermissionsIdWithResponse call
+func ParseDeletePermissionsIdResponse(rsp *http.Response) (*DeletePermissionsIdResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeletePermissionsIdResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	}
+
+	return response, nil
+}
+
+// ParseGetPermissionsIdResponse parses an HTTP response from a GetPermissionsIdWithResponse call
+func ParseGetPermissionsIdResponse(rsp *http.Response) (*GetPermissionsIdResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetPermissionsIdResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PermissionInfoResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePatchPermissionsIdResponse parses an HTTP response from a PatchPermissionsIdWithResponse call
+func ParsePatchPermissionsIdResponse(rsp *http.Response) (*PatchPermissionsIdResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PatchPermissionsIdResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PermissionInfoResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
 }
 
 // ParseGetRoutesResponse parses an HTTP response from a GetRoutesWithResponse call

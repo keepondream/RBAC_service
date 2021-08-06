@@ -46,7 +46,7 @@ func (r *Route) Ent2Port(model *ent.Route) *ports.Route {
 }
 
 func (r *Route) GetById(ctx context.Context, id string) (*ports.RouteInfoResponse, error) {
-	model, err := r.EntClient.Route.Query().Where(route.ID(cast.ToInt(id))).First(ctx)
+	model, err := r.EntClient.Route.Get(ctx, cast.ToInt(id))
 	if err != nil {
 		return nil, err
 	}

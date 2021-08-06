@@ -104,6 +104,37 @@ type ItemUpdatedat struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+// Permission defines model for Permission.
+type Permission struct {
+	// Embedded fields due to inline allOf schema
+	Id string `json:"id"`
+
+	// 权限名称
+	Name string `json:"name"`
+	// Embedded struct due to allOf(#/components/schemas/ItemTenant)
+	ItemTenant `yaml:",inline"`
+	// Embedded struct due to allOf(#/components/schemas/ItemData)
+	ItemData `yaml:",inline"`
+	// Embedded struct due to allOf(#/components/schemas/ItemCreatedat)
+	ItemCreatedat `yaml:",inline"`
+	// Embedded struct due to allOf(#/components/schemas/ItemUpdatedat)
+	ItemUpdatedat `yaml:",inline"`
+}
+
+// PermissionInfoResponse defines model for PermissionInfoResponse.
+type PermissionInfoResponse struct {
+	// Embedded struct due to allOf(#/components/schemas/Permission)
+	Permission `yaml:",inline"`
+	// Embedded fields due to inline allOf schema
+	Route *[]Route `json:"route,omitempty"`
+}
+
+// PermissionListResponse defines model for PermissionListResponse.
+type PermissionListResponse struct {
+	Items []PermissionInfoResponse `json:"items"`
+	Total string                   `json:"total"`
+}
+
 // Route defines model for Route.
 type Route struct {
 	// Embedded fields due to inline allOf schema
@@ -171,6 +202,62 @@ type ErrResponse struct {
 	Err `yaml:",inline"`
 }
 
+// GetPermissionsParams defines parameters for GetPermissions.
+type GetPermissionsParams struct {
+
+	// 页码
+	Page Page `json:"page"`
+
+	// 分页数量 默认20, 最大100
+	PerPage *PerPage `json:"per_page,omitempty"`
+
+	// 排序方式 只支持 asc 或者 desc
+	Order GetPermissionsParamsOrder `json:"order"`
+
+	// - 查询关键字以空格分割,多个维度用冒号连接关键字,每个关键字需要用encode `示例: 查询默认关键字为name "route1 route2"两个名称的路由, 域标识为 domain1 或者 domain2 的数据`  ``` http://host.com?query=${encodeURIComponent('route1')} ${encodeURIComponent('route2')} tenant:${encodeURIComponent('domain1')} tenant:${encodeURIComponent('domain2')} ```
+	Query *Query `json:"query,omitempty"`
+
+	// 排序字段 多个组合用逗号分隔 示例: id,name
+	Sort *Sort `json:"sort,omitempty"`
+
+	// 起始时间 零时区时间格式: YYYY-MM-DDTHH:MM:SSZ
+	StartTime *StartTime `json:"start_time,omitempty"`
+
+	// 结束时间 零时区时间格式: YYYY-MM-DDTHH:MM:SSZ
+	EndTime *EndTime `json:"end_time,omitempty"`
+}
+
+// GetPermissionsParamsOrder defines parameters for GetPermissions.
+type GetPermissionsParamsOrder string
+
+// PostPermissionsJSONBody defines parameters for PostPermissions.
+type PostPermissionsJSONBody struct {
+	// Embedded fields due to inline allOf schema
+
+	// 权限名称
+	Name string `json:"name"`
+
+	// 权限对应的路由IDS
+	RouteIds []string `json:"route_ids"`
+	// Embedded struct due to allOf(#/components/schemas/ItemTenant)
+	ItemTenant `yaml:",inline"`
+	// Embedded struct due to allOf(#/components/schemas/ItemData)
+	ItemData `yaml:",inline"`
+}
+
+// PatchPermissionsIdJSONBody defines parameters for PatchPermissionsId.
+type PatchPermissionsIdJSONBody struct {
+	// Embedded fields due to inline allOf schema
+	Data *ItemData `json:"data,omitempty"`
+
+	// 权限名称
+	Name *string `json:"name,omitempty"`
+
+	// 权限绑定的相关路由ID,字段不传则不更改
+	RouteIds *[]string   `json:"route_ids,omitempty"`
+	Tenant   *ItemTenant `json:"tenant,omitempty"`
+}
+
 // GetRoutesParams defines parameters for GetRoutes.
 type GetRoutesParams struct {
 
@@ -228,6 +315,12 @@ type PatchRoutesIdJSONBody struct {
 	// 路由路径,path,拦截URL
 	Uri *string `json:"uri,omitempty"`
 }
+
+// PostPermissionsJSONRequestBody defines body for PostPermissions for application/json ContentType.
+type PostPermissionsJSONRequestBody PostPermissionsJSONBody
+
+// PatchPermissionsIdJSONRequestBody defines body for PatchPermissionsId for application/json ContentType.
+type PatchPermissionsIdJSONRequestBody PatchPermissionsIdJSONBody
 
 // PostRoutesJSONRequestBody defines body for PostRoutes for application/json ContentType.
 type PostRoutesJSONRequestBody PostRoutesJSONBody

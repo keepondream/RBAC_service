@@ -56,7 +56,7 @@ func (h *HttpServer) PostRoutes(w http.ResponseWriter, r *http.Request) {
 // (DELETE /routes/{id})
 func (h *HttpServer) DeleteRoutesId(w http.ResponseWriter, r *http.Request, id string) {
 	_, err := h.RouteService.GetById(r.Context(), id)
-	if err == nil {
+	if err != nil {
 		utils.Render(w, r, 404, utils.WithError(fmt.Errorf("not found")))
 		return
 	}
@@ -71,14 +71,9 @@ func (h *HttpServer) DeleteRoutesId(w http.ResponseWriter, r *http.Request, id s
 // 路由详情
 // (GET /routes/{id})
 func (h *HttpServer) GetRoutesId(w http.ResponseWriter, r *http.Request, id string) {
-	_, err := h.RouteService.GetById(r.Context(), id)
-	if err == nil {
-		utils.Render(w, r, 404, utils.WithError(fmt.Errorf("not found")))
-		return
-	}
 	res, err := h.RouteService.GetById(r.Context(), id)
 	if err != nil {
-		utils.Render(w, r, 400, utils.WithError(err))
+		utils.Render(w, r, 404, utils.WithError(fmt.Errorf("not found")))
 		return
 	}
 	utils.Render(w, r, 200, utils.WithData(res))
@@ -94,7 +89,7 @@ func (h *HttpServer) PatchRoutesId(w http.ResponseWriter, r *http.Request, id st
 		return
 	}
 	_, err = h.RouteService.GetById(r.Context(), id)
-	if err == nil {
+	if err != nil {
 		utils.Render(w, r, 404, utils.WithError(fmt.Errorf("not found")))
 		return
 	}

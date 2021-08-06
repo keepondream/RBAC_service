@@ -248,6 +248,227 @@
           "route"
         ]
       }
+    },
+    "/permissions": {
+      "get": {
+        "summary": "权限列表",
+        "tags": [
+          "permission"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PermissionListResponse"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-permissions",
+        "description": "权限列表\nquery: 默认name查询,其余字段多维度,支持子属性精确匹配,例如: route.id:1 查询包含路由ID为1的权限\n例如: route.id:1 route.id:2 查询包含路由ID为1和2的权限",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          },
+          {
+            "$ref": "#/components/parameters/order"
+          },
+          {
+            "$ref": "#/components/parameters/query"
+          },
+          {
+            "$ref": "#/components/parameters/sort"
+          },
+          {
+            "$ref": "#/components/parameters/start_time"
+          },
+          {
+            "$ref": "#/components/parameters/end_time"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "创建权限",
+        "operationId": "post-permissions",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PermissionInfoResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "permission"
+        ],
+        "description": "创建权限",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "权限名称"
+                      },
+                      "route_ids": {
+                        "type": "array",
+                        "description": "权限对应的路由IDS",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "route_ids"
+                    ]
+                  },
+                  {
+                    "$ref": "#/components/schemas/ItemTenant"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ItemData"
+                  }
+                ]
+              }
+            }
+          },
+          "description": ""
+        }
+      }
+    },
+    "/permissions/{id}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "权限ID"
+        }
+      ],
+      "get": {
+        "summary": "获取权限详情",
+        "tags": [
+          "permission"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PermissionInfoResponse"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-permissions-id",
+        "description": "获取权限详情",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          },
+          "description": ""
+        }
+      },
+      "patch": {
+        "summary": "更新权限信息",
+        "operationId": "patch-permissions-id",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PermissionInfoResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "permission"
+        ],
+        "description": "更新权限信息",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "权限名称"
+                      },
+                      "route_ids": {
+                        "type": "array",
+                        "description": "权限绑定的相关路由ID,字段不传则不更改",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "tenant": {
+                        "$ref": "#/components/schemas/ItemTenant"
+                      },
+                      "data": {
+                        "$ref": "#/components/schemas/ItemData"
+                      }
+                    }
+                  }
+                ],
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "删除权限",
+        "operationId": "delete-permissions-id",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "description": "删除权限",
+        "tags": [
+          "permission"
+        ]
+      }
     }
   },
   "components": {
@@ -270,6 +491,9 @@
           "total",
           "items"
         ]
+      },
+      "RouteInfoResponse": {
+        "$ref": "#/components/schemas/Route"
       },
       "Route": {
         "title": "Route",
@@ -313,6 +537,44 @@
             "$ref": "#/components/schemas/ItemUpdatedat"
           }
         ]
+      },
+      "PermissionListResponse": {
+        "title": "PermissionListResponse",
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PermissionInfoResponse"
+            }
+          }
+        },
+        "required": [
+          "total",
+          "items"
+        ]
+      },
+      "PermissionInfoResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Permission"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "route": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Route"
+                }
+              }
+            }
+          }
+        ],
+        "examples": []
       },
       "Permission": {
         "title": "Permission",
@@ -547,9 +809,6 @@
             "example": "422.000"
           }
         }
-      },
-      "RouteInfoResponse": {
-        "$ref": "#/components/schemas/Route"
       }
     },
     "parameters": {
@@ -672,6 +931,9 @@
     }
   },
   "tags": [
+    {
+      "name": "permission"
+    },
     {
       "name": "route"
     }

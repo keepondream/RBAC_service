@@ -24,7 +24,8 @@ func NewApplication() (*App, error) {
 	enforcer := NewEnforcer(adapter)
 	serviceService := service.NewService(cacheCache, client, repoRepo, enforcer)
 	route := service.NewRoute(serviceService)
-	httpServer := ports.NewHttpServer(route)
+	permission := service.NewPermission(serviceService)
+	httpServer := ports.NewHttpServer(route, permission)
 	app := NewApp(httpServer)
 	return app, nil
 }
@@ -32,3 +33,5 @@ func NewApplication() (*App, error) {
 // wire.go:
 
 var NewRoute = wire.NewSet(service.NewRoute, wire.Bind(new(ports.Router), new(*service.Route)))
+
+var NewPermission = wire.NewSet(service.NewPermission, wire.Bind(new(ports.Permissioner), new(*service.Permission)))

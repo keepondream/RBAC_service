@@ -8,14 +8,20 @@ import (
 )
 
 type HttpServer struct {
-	Validate     *validator.Validate
-	RouteService Router
+	Validate          *validator.Validate
+	RouteService      Router
+	PermissionService Permissioner
 }
 
-func NewHttpServer(routeService Router) *HttpServer {
+// NewHttpServer 注入依赖服务
+func NewHttpServer(
+	routeService Router,
+	permissionService Permissioner,
+) *HttpServer {
 	return &HttpServer{
-		Validate:     utils.NewValidate(),
-		RouteService: routeService,
+		Validate:          utils.NewValidate(),
+		RouteService:      routeService,
+		PermissionService: permissionService,
 	}
 }
 

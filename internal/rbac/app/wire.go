@@ -11,6 +11,7 @@ import (
 )
 
 var NewRoute = wire.NewSet(service.NewRoute, wire.Bind(new(ports.Router), new(*service.Route)))
+var NewPermission = wire.NewSet(service.NewPermission, wire.Bind(new(ports.Permissioner), new(*service.Permission)))
 
 func NewApplication() (*App, error) {
 	wire.Build(
@@ -24,6 +25,7 @@ func NewApplication() (*App, error) {
 		ports.NewHttpServer,
 		repo.NewRepo,
 		NewRoute,
+		NewPermission,
 	)
 
 	return &App{}, nil

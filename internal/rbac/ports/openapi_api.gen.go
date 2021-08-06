@@ -13,6 +13,21 @@ import (
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// 权限列表
+	// (GET /permissions)
+	GetPermissions(w http.ResponseWriter, r *http.Request, params GetPermissionsParams)
+	// 创建权限
+	// (POST /permissions)
+	PostPermissions(w http.ResponseWriter, r *http.Request)
+	// 删除权限
+	// (DELETE /permissions/{id})
+	DeletePermissionsId(w http.ResponseWriter, r *http.Request, id string)
+	// 获取权限详情
+	// (GET /permissions/{id})
+	GetPermissionsId(w http.ResponseWriter, r *http.Request, id string)
+	// 更新权限信息
+	// (PATCH /permissions/{id})
+	PatchPermissionsId(w http.ResponseWriter, r *http.Request, id string)
 	// 路由列表
 	// (GET /routes)
 	GetRoutes(w http.ResponseWriter, r *http.Request, params GetRoutesParams)
@@ -37,6 +52,202 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.HandlerFunc) http.HandlerFunc
+
+// GetPermissions operation middleware
+func (siw *ServerInterfaceWrapper) GetPermissions(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetPermissionsParams
+
+	// ------------- Required query parameter "page" -------------
+	if paramValue := r.URL.Query().Get("page"); paramValue != "" {
+
+	} else {
+		http.Error(w, "Query argument page is required, but not found", http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "page", r.URL.Query(), &params.Page)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter page: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "per_page" -------------
+	if paramValue := r.URL.Query().Get("per_page"); paramValue != "" {
+
+	}
+
+	err = runtime.BindQueryParameter("form", true, false, "per_page", r.URL.Query(), &params.PerPage)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter per_page: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Required query parameter "order" -------------
+	if paramValue := r.URL.Query().Get("order"); paramValue != "" {
+
+	} else {
+		http.Error(w, "Query argument order is required, but not found", http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "order", r.URL.Query(), &params.Order)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter order: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "query" -------------
+	if paramValue := r.URL.Query().Get("query"); paramValue != "" {
+
+	}
+
+	err = runtime.BindQueryParameter("form", true, false, "query", r.URL.Query(), &params.Query)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter query: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "sort" -------------
+	if paramValue := r.URL.Query().Get("sort"); paramValue != "" {
+
+	}
+
+	err = runtime.BindQueryParameter("form", true, false, "sort", r.URL.Query(), &params.Sort)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter sort: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "start_time" -------------
+	if paramValue := r.URL.Query().Get("start_time"); paramValue != "" {
+
+	}
+
+	err = runtime.BindQueryParameter("form", true, false, "start_time", r.URL.Query(), &params.StartTime)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter start_time: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "end_time" -------------
+	if paramValue := r.URL.Query().Get("end_time"); paramValue != "" {
+
+	}
+
+	err = runtime.BindQueryParameter("form", true, false, "end_time", r.URL.Query(), &params.EndTime)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter end_time: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetPermissions(w, r, params)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// PostPermissions operation middleware
+func (siw *ServerInterfaceWrapper) PostPermissions(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostPermissions(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// DeletePermissionsId operation middleware
+func (siw *ServerInterfaceWrapper) DeletePermissionsId(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameter("simple", false, "id", chi.URLParam(r, "id"), &id)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter id: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeletePermissionsId(w, r, id)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// GetPermissionsId operation middleware
+func (siw *ServerInterfaceWrapper) GetPermissionsId(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameter("simple", false, "id", chi.URLParam(r, "id"), &id)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter id: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetPermissionsId(w, r, id)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// PatchPermissionsId operation middleware
+func (siw *ServerInterfaceWrapper) PatchPermissionsId(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameter("simple", false, "id", chi.URLParam(r, "id"), &id)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter id: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PatchPermissionsId(w, r, id)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
 
 // GetRoutes operation middleware
 func (siw *ServerInterfaceWrapper) GetRoutes(w http.ResponseWriter, r *http.Request) {
@@ -271,6 +482,21 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		HandlerMiddlewares: options.Middlewares,
 	}
 
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/permissions", wrapper.GetPermissions)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/permissions", wrapper.PostPermissions)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/permissions/{id}", wrapper.DeletePermissionsId)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/permissions/{id}", wrapper.GetPermissionsId)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/permissions/{id}", wrapper.PatchPermissionsId)
+	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/routes", wrapper.GetRoutes)
 	})
