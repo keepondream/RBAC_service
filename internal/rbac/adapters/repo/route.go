@@ -125,7 +125,7 @@ func (r *Route) List(ctx context.Context, params ports.GetRoutesParams) (*ports.
 		list.Items = append(list.Items, *portsRoute)
 	}
 
-	panic("not implemented") // TODO: Implement
+	return &list, nil
 }
 
 func (r *Route) DeleteById(ctx context.Context, id string) error {

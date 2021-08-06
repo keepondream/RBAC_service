@@ -3,6 +3,7 @@ package ports
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/keepondream/RBAC_service/internal/common/utils"
@@ -14,6 +15,7 @@ type Router interface {
 	Create(ctx context.Context, params PostRoutesJSONBody) (*RouteDetail, error)
 	DeleteById(ctx context.Context, id string) error
 	Update(ctx context.Context, params PatchRoutesIdJSONBody, id string) (*RouteDetail, error)
+	IsUnique(ctx context.Context, tenant, uri, method string) error
 }
 
 // 路由列表
@@ -48,7 +50,12 @@ func (h *HttpServer) PostRoutes(w http.ResponseWriter, r *http.Request) {
 // 删除路由
 // (DELETE /routes/{id})
 func (h *HttpServer) DeleteRoutesId(w http.ResponseWriter, r *http.Request, id string) {
-	err := h.RouteService.DeleteById(r.Context(), id)
+	_, err := h.RouteService.GetById(r.Context(), id)
+	if err == nil {
+		utils.Render(w, r, 404, utils.WithError(fmt.Errorf("not found")))
+		return
+	}
+	err = h.RouteService.DeleteById(r.Context(), id)
 	if err != nil {
 		utils.Render(w, r, 400, utils.WithError(err))
 		return
@@ -59,6 +66,11 @@ func (h *HttpServer) DeleteRoutesId(w http.ResponseWriter, r *http.Request, id s
 // 路由详情
 // (GET /routes/{id})
 func (h *HttpServer) GetRoutesId(w http.ResponseWriter, r *http.Request, id string) {
+	_, err := h.RouteService.GetById(r.Context(), id)
+	if err == nil {
+		utils.Render(w, r, 404, utils.WithError(fmt.Errorf("not found")))
+		return
+	}
 	res, err := h.RouteService.GetById(r.Context(), id)
 	if err != nil {
 		utils.Render(w, r, 400, utils.WithError(err))
@@ -74,6 +86,11 @@ func (h *HttpServer) PatchRoutesId(w http.ResponseWriter, r *http.Request, id st
 	err := json.NewDecoder(r.Body).Decode(&params)
 	if err != nil {
 		utils.Render(w, r, 400, utils.WithError(err))
+		return
+	}
+	_, err = h.RouteService.GetById(r.Context(), id)
+	if err == nil {
+		utils.Render(w, r, 404, utils.WithError(fmt.Errorf("not found")))
 		return
 	}
 	res, err := h.RouteService.Update(r.Context(), PatchRoutesIdJSONBody(params), id)

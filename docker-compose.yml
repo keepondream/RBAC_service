@@ -30,6 +30,8 @@ services:
     volumes:
       - ~/go/pkg/mod:/go/pkg/mod
       - ./internal:/internal
+    ports:
+      - 9999:80
     environment:
       - TZ=Asia/Shanghai
     restart: on-failure

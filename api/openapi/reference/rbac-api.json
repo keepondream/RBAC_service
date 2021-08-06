@@ -13,7 +13,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:3000"
+      "url": "http://127.0.0.1:9999"
     }
   ],
   "paths": {
@@ -69,6 +69,9 @@
         "responses": {
           "201": {
             "$ref": "#/components/responses/RouteDetail"
+          },
+          "422": {
+            "$ref": "#/components/responses/Err"
           }
         },
         "description": "创建路由",
@@ -128,6 +131,9 @@
         "responses": {
           "200": {
             "$ref": "#/components/responses/RouteDetail"
+          },
+          "404": {
+            "$ref": "#/components/responses/Err"
           }
         },
         "operationId": "get-routes-id",
@@ -149,6 +155,12 @@
         "responses": {
           "200": {
             "$ref": "#/components/responses/RouteDetail"
+          },
+          "404": {
+            "$ref": "#/components/responses/Err"
+          },
+          "422": {
+            "$ref": "#/components/responses/Err"
           }
         },
         "description": "修改路由信息",
@@ -188,6 +200,9 @@
         "responses": {
           "204": {
             "description": "No Content"
+          },
+          "404": {
+            "$ref": "#/components/responses/Err"
           }
         },
         "description": "删除路由"
@@ -642,6 +657,36 @@
           "application/json": {
             "schema": {
               "$ref": "#/components/schemas/Route"
+            }
+          }
+        }
+      },
+      "Err": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "description": "错误码\n\n|Code|Description|\n|----|----|\n|422.000|数据不存在|\n|422.111|数据已存在|\n|422.999|参数有误|",
+                  "enum": [
+                    "422.000",
+                    "422.111",
+                    "422.999"
+                  ],
+                  "example": "422.000"
+                },
+                "field": {
+                  "type": "string",
+                  "description": "错误字段"
+                },
+                "msg": {
+                  "type": "string",
+                  "description": "错误描述"
+                }
+              }
             }
           }
         }
