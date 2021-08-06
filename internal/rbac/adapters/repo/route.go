@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/keepondream/RBAC_service/internal/common/utils"
@@ -44,7 +45,7 @@ func (r *Route) Ent2Port(model *ent.Route) *ports.Route {
 	}
 }
 
-func (r *Route) GetById(ctx context.Context, id string) (*ports.RouteDetail, error) {
+func (r *Route) GetById(ctx context.Context, id string) (*ports.RouteInfoResponse, error) {
 	model, err := r.EntClient.Route.Query().Where(route.ID(cast.ToInt(id))).First(ctx)
 	if err != nil {
 		return nil, err
@@ -52,11 +53,11 @@ func (r *Route) GetById(ctx context.Context, id string) (*ports.RouteDetail, err
 
 	portsRoute := r.Ent2Port(model)
 
-	return (*ports.RouteDetail)(portsRoute), nil
+	return (*ports.RouteInfoResponse)(portsRoute), nil
 }
 
-func (r *Route) List(ctx context.Context, params ports.GetRoutesParams) (*ports.RouteList, error) {
-	list := ports.RouteList{
+func (r *Route) List(ctx context.Context, params ports.GetRoutesParams) (*ports.RouteListResponse, error) {
+	list := ports.RouteListResponse{
 		Items: []ports.Route{},
 		Total: "0",
 	}
@@ -132,7 +133,7 @@ func (r *Route) DeleteById(ctx context.Context, id string) error {
 	return r.EntClient.Route.DeleteOneID(cast.ToInt(id)).Exec(ctx)
 }
 
-func (r *Route) Update(ctx context.Context, params ports.PatchRoutesIdJSONBody, id string) (*ports.RouteDetail, error) {
+func (r *Route) Update(ctx context.Context, params ports.PatchRoutesIdJSONBody, id string) (*ports.RouteInfoResponse, error) {
 	modelQuery := r.EntClient.Route.UpdateOneID(cast.ToInt(id))
 	if params.Data != nil {
 		modelQuery.SetData(&params.Data.Data)
@@ -156,10 +157,10 @@ func (r *Route) Update(ctx context.Context, params ports.PatchRoutesIdJSONBody, 
 	}
 
 	portsRoute := r.Ent2Port(model)
-	return (*ports.RouteDetail)(portsRoute), nil
+	return (*ports.RouteInfoResponse)(portsRoute), nil
 }
 
-func (r *Route) Create(ctx context.Context, params ports.PostRoutesJSONBody) (*ports.RouteDetail, error) {
+func (r *Route) Create(ctx context.Context, params ports.PostRoutesJSONBody) (*ports.RouteInfoResponse, error) {
 	model, err := r.EntClient.Route.Create().
 		SetTenant(params.Tenant).
 		SetName(params.Name).
@@ -171,5 +172,22 @@ func (r *Route) Create(ctx context.Context, params ports.PostRoutesJSONBody) (*p
 	}
 
 	portsRoute := r.Ent2Port(model)
-	return (*ports.RouteDetail)(portsRoute), nil
+	return (*ports.RouteInfoResponse)(portsRoute), nil
+}
+
+func (r *Route) IsUnique(ctx context.Context, tenant string, uri string, method string) error {
+	exist, err := r.EntClient.Route.Query().
+		Where(route.Tenant(tenant)).
+		Where(route.URI(uri)).
+		Where(route.MethodEQ(route.Method(method))).
+		Exist(ctx)
+	if err != nil {
+		return err
+	}
+
+	if !exist {
+		return fmt.Errorf("not exist")
+	}
+
+	return nil
 }

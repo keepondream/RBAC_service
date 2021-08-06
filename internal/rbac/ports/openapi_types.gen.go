@@ -7,6 +7,15 @@ import (
 	"time"
 )
 
+// Defines values for ErrCode.
+const (
+	ErrCodeN422000 ErrCode = "422.000"
+
+	ErrCodeN422111 ErrCode = "422.111"
+
+	ErrCodeN422999 ErrCode = "422.999"
+)
+
 // Defines values for ItemMethodMethod.
 const (
 	ItemMethodMethodCONNECT ItemMethodMethod = "CONNECT"
@@ -34,6 +43,28 @@ const (
 
 	Desc Order = "desc"
 )
+
+// Err defines model for Err.
+type Err struct {
+
+	// 错误码
+	//
+	// |Code|Description|
+	// |----|----|
+	// |422.000|数据不存在|
+	// |422.111|数据已存在|
+	// |422.999|参数有误|
+	Code *ErrCode `json:"code,omitempty"`
+}
+
+// 错误码
+//
+// |Code|Description|
+// |----|----|
+// |422.000|数据不存在|
+// |422.111|数据已存在|
+// |422.999|参数有误|
+type ErrCode string
 
 // ItemCreatedat defines model for ItemCreatedat.
 type ItemCreatedat struct {
@@ -97,6 +128,15 @@ type Route struct {
 	ItemUpdatedat `yaml:",inline"`
 }
 
+// RouteInfoResponse defines model for RouteInfoResponse.
+type RouteInfoResponse Route
+
+// RouteListResponse defines model for RouteListResponse.
+type RouteListResponse struct {
+	Items []Route `json:"items"`
+	Total string  `json:"total"`
+}
+
 // EndTime defines model for end_time.
 type EndTime time.Time
 
@@ -118,13 +158,17 @@ type Sort string
 // StartTime defines model for start_time.
 type StartTime time.Time
 
-// RouteDetail defines model for RouteDetail.
-type RouteDetail Route
+// ErrResponse defines model for ErrResponse.
+type ErrResponse struct {
+	// Embedded fields due to inline allOf schema
 
-// RouteList defines model for RouteList.
-type RouteList struct {
-	Items []Route `json:"items"`
-	Total string  `json:"total"`
+	// 错误字段
+	Field *string `json:"field,omitempty"`
+
+	// 错误描述
+	Msg *string `json:"msg,omitempty"`
+	// Embedded struct due to allOf(#/components/schemas/Err)
+	Err `yaml:",inline"`
 }
 
 // GetRoutesParams defines parameters for GetRoutes.

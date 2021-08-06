@@ -10,11 +10,11 @@ import (
 )
 
 type Router interface {
-	GetById(ctx context.Context, id string) (*RouteDetail, error)
-	List(ctx context.Context, params GetRoutesParams) (*RouteList, error)
-	Create(ctx context.Context, params PostRoutesJSONBody) (*RouteDetail, error)
+	GetById(ctx context.Context, id string) (*RouteInfoResponse, error)
+	List(ctx context.Context, params GetRoutesParams) (*RouteListResponse, error)
+	Create(ctx context.Context, params PostRoutesJSONBody) (*RouteInfoResponse, error)
 	DeleteById(ctx context.Context, id string) error
-	Update(ctx context.Context, params PatchRoutesIdJSONBody, id string) (*RouteDetail, error)
+	Update(ctx context.Context, params PatchRoutesIdJSONBody, id string) (*RouteInfoResponse, error)
 	IsUnique(ctx context.Context, tenant, uri, method string) error
 }
 
@@ -39,6 +39,11 @@ func (h *HttpServer) PostRoutes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err = h.RouteService.IsUnique(r.Context(), params.Tenant, params.Uri, string(params.Method))
+	if err != nil {
+		utils.Render(w, r, 422, utils.WithCode(string(ErrCodeN422111)), utils.WithField("tenant,uri,method"), utils.WithError(err))
+		return
+	}
 	res, err := h.RouteService.Create(r.Context(), PostRoutesJSONBody(params))
 	if err != nil {
 		utils.Render(w, r, 400, utils.WithError(err))

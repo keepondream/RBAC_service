@@ -20,12 +20,9 @@
     "/routes": {
       "get": {
         "summary": "路由列表",
-        "tags": [],
-        "responses": {
-          "200": {
-            "$ref": "#/components/responses/RouteList"
-          }
-        },
+        "tags": [
+          "route"
+        ],
         "operationId": "get-routes",
         "description": "路由列表\nquery: 默认name查询,其余字段多维度",
         "parameters": [
@@ -61,6 +58,18 @@
             }
           },
           "description": ""
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteListResponse"
+                }
+              }
+            }
+          }
         }
       },
       "post": {
@@ -68,10 +77,17 @@
         "operationId": "post-routes",
         "responses": {
           "201": {
-            "$ref": "#/components/responses/RouteDetail"
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteInfoResponse"
+                }
+              }
+            }
           },
           "422": {
-            "$ref": "#/components/responses/Err"
+            "$ref": "#/components/responses/ErrResponse"
           }
         },
         "description": "创建路由",
@@ -110,7 +126,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "route"
+        ]
       }
     },
     "/routes/{id}": {
@@ -127,13 +146,22 @@
       ],
       "get": {
         "summary": "路由详情",
-        "tags": [],
+        "tags": [
+          "route"
+        ],
         "responses": {
           "200": {
-            "$ref": "#/components/responses/RouteDetail"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteInfoResponse"
+                }
+              }
+            }
           },
           "404": {
-            "$ref": "#/components/responses/Err"
+            "$ref": "#/components/responses/ErrResponse"
           }
         },
         "operationId": "get-routes-id",
@@ -154,13 +182,20 @@
         "operationId": "patch-routes-id",
         "responses": {
           "200": {
-            "$ref": "#/components/responses/RouteDetail"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteInfoResponse"
+                }
+              }
+            }
           },
           "404": {
-            "$ref": "#/components/responses/Err"
+            "$ref": "#/components/responses/ErrResponse"
           },
           "422": {
-            "$ref": "#/components/responses/Err"
+            "$ref": "#/components/responses/ErrResponse"
           }
         },
         "description": "修改路由信息",
@@ -192,7 +227,10 @@
               "examples": {}
             }
           }
-        }
+        },
+        "tags": [
+          "route"
+        ]
       },
       "delete": {
         "summary": "删除路由",
@@ -202,66 +240,35 @@
             "description": "No Content"
           },
           "404": {
-            "$ref": "#/components/responses/Err"
+            "$ref": "#/components/responses/ErrResponse"
           }
         },
-        "description": "删除路由"
+        "description": "删除路由",
+        "tags": [
+          "route"
+        ]
       }
     }
   },
   "components": {
     "schemas": {
-      "User": {
-        "title": "User",
+      "RouteListResponse": {
+        "title": "RouteListResponse",
         "type": "object",
-        "description": "",
-        "examples": [
-          {
-            "id": 142,
-            "firstName": "Alice",
-            "lastName": "Smith",
-            "email": "alice.smith@gmail.com",
-            "dateOfBirth": "1997-10-31",
-            "emailVerified": true,
-            "signUpDate": "2019-08-24"
-          }
-        ],
         "properties": {
-          "id": {
-            "type": "integer",
-            "description": "Unique identifier for the given user."
-          },
-          "firstName": {
+          "total": {
             "type": "string"
           },
-          "lastName": {
-            "type": "string"
-          },
-          "email": {
-            "type": "string",
-            "format": "email"
-          },
-          "dateOfBirth": {
-            "type": "string",
-            "format": "date",
-            "example": "1997-10-31"
-          },
-          "emailVerified": {
-            "type": "boolean",
-            "description": "Set to true if the user's email has been verified."
-          },
-          "createDate": {
-            "type": "string",
-            "format": "date",
-            "description": "The date that the user was created."
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Route"
+            }
           }
         },
         "required": [
-          "id",
-          "firstName",
-          "lastName",
-          "email",
-          "emailVerified"
+          "total",
+          "items"
         ]
       },
       "Route": {
@@ -524,6 +531,25 @@
         "required": [
           "type"
         ]
+      },
+      "Err": {
+        "title": "",
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "错误码\n\n|Code|Description|\n|----|----|\n|422.000|数据不存在|\n|422.111|数据已存在|\n|422.999|参数有误|",
+            "enum": [
+              "422.000",
+              "422.111",
+              "422.999"
+            ],
+            "example": "422.000"
+          }
+        }
+      },
+      "RouteInfoResponse": {
+        "$ref": "#/components/schemas/Route"
       }
     },
     "parameters": {
@@ -607,84 +633,36 @@
       }
     },
     "responses": {
-      "RouteList": {
+      "ErrResponse": {
         "description": "Example response",
         "content": {
           "application/json": {
             "schema": {
-              "type": "object",
-              "properties": {
-                "total": {
-                  "type": "string"
-                },
-                "items": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Route"
+              "allOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "field": {
+                      "type": "string",
+                      "description": "错误字段"
+                    },
+                    "msg": {
+                      "type": "string",
+                      "description": "错误描述"
+                    }
                   }
+                },
+                {
+                  "$ref": "#/components/schemas/Err"
                 }
-              },
-              "required": [
-                "total",
-                "items"
               ]
             },
             "examples": {
-              "example-1": {
+              "错误示例": {
                 "value": {
-                  "total": "string",
-                  "items": [
-                    {
-                      "id": "string",
-                      "name": "string",
-                      "uri": "string",
-                      "method": "GET",
-                      "tenant": "domain1",
-                      "data": {},
-                      "created_at": "2021-01-01T16:00:00Z",
-                      "updated_at": "2021-01-02T00:00:00Z"
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        }
-      },
-      "RouteDetail": {
-        "description": "Example response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/Route"
-            }
-          }
-        }
-      },
-      "Err": {
-        "description": "Example response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "code": {
-                  "type": "string",
-                  "description": "错误码\n\n|Code|Description|\n|----|----|\n|422.000|数据不存在|\n|422.111|数据已存在|\n|422.999|参数有误|",
-                  "enum": [
-                    "422.000",
-                    "422.111",
-                    "422.999"
-                  ],
-                  "example": "422.000"
-                },
-                "field": {
-                  "type": "string",
-                  "description": "错误字段"
-                },
-                "msg": {
-                  "type": "string",
-                  "description": "错误描述"
+                  "field": "错误字段",
+                  "msg": "错误消息",
+                  "code": "422.000"
                 }
               }
             }
@@ -692,5 +670,10 @@
         }
       }
     }
-  }
+  },
+  "tags": [
+    {
+      "name": "route"
+    }
+  ]
 }

@@ -1,7 +1,7 @@
 dev:
 	cd ./internal/rbac && go run .
 
-rbacWire: rbacEnt
+rbacWire: rbacEnt yapi
 	cd ./internal/rbac/app && wire
 
 # 路由表, 权限表, 权限路由关系表(多对多), 分组表(角色:role, 角色组:role_group, 用户:user, 用户组:user_group, 菜单:menu, 菜单组:menu_group, 权限组:permission_group, 页面元素:element, 页面元素组:element_group 等等... ), 权限分组关系表(多对多)
@@ -20,3 +20,7 @@ openapi_http:
 local: rbacWire
 	docker-compose down
 	docker-compose up
+
+# http://yapi.smart-xwork.cn 
+yapi:
+	yapi import

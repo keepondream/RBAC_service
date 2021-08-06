@@ -554,10 +554,7 @@ type ClientWithResponsesInterface interface {
 type GetRoutesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *struct {
-		Items []Route `json:"items"`
-		Total string  `json:"total"`
-	}
+	JSON200      *RouteListResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -579,7 +576,18 @@ func (r GetRoutesResponse) StatusCode() int {
 type PostRoutesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *Route
+	JSON201      *RouteInfoResponse
+	JSON422      *struct {
+		// Embedded fields due to inline allOf schema
+
+		// 错误字段
+		Field *string `json:"field,omitempty"`
+
+		// 错误描述
+		Msg *string `json:"msg,omitempty"`
+		// Embedded struct due to allOf(#/components/schemas/Err)
+		Err `yaml:",inline"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -601,6 +609,17 @@ func (r PostRoutesResponse) StatusCode() int {
 type DeleteRoutesIdResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON404      *struct {
+		// Embedded fields due to inline allOf schema
+
+		// 错误字段
+		Field *string `json:"field,omitempty"`
+
+		// 错误描述
+		Msg *string `json:"msg,omitempty"`
+		// Embedded struct due to allOf(#/components/schemas/Err)
+		Err `yaml:",inline"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -622,7 +641,18 @@ func (r DeleteRoutesIdResponse) StatusCode() int {
 type GetRoutesIdResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *Route
+	JSON200      *RouteInfoResponse
+	JSON404      *struct {
+		// Embedded fields due to inline allOf schema
+
+		// 错误字段
+		Field *string `json:"field,omitempty"`
+
+		// 错误描述
+		Msg *string `json:"msg,omitempty"`
+		// Embedded struct due to allOf(#/components/schemas/Err)
+		Err `yaml:",inline"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -644,7 +674,29 @@ func (r GetRoutesIdResponse) StatusCode() int {
 type PatchRoutesIdResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *Route
+	JSON200      *RouteInfoResponse
+	JSON404      *struct {
+		// Embedded fields due to inline allOf schema
+
+		// 错误字段
+		Field *string `json:"field,omitempty"`
+
+		// 错误描述
+		Msg *string `json:"msg,omitempty"`
+		// Embedded struct due to allOf(#/components/schemas/Err)
+		Err `yaml:",inline"`
+	}
+	JSON422 *struct {
+		// Embedded fields due to inline allOf schema
+
+		// 错误字段
+		Field *string `json:"field,omitempty"`
+
+		// 错误描述
+		Msg *string `json:"msg,omitempty"`
+		// Embedded struct due to allOf(#/components/schemas/Err)
+		Err `yaml:",inline"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -739,10 +791,7 @@ func ParseGetRoutesResponse(rsp *http.Response) (*GetRoutesResponse, error) {
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			Items []Route `json:"items"`
-			Total string  `json:"total"`
-		}
+		var dest RouteListResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -767,12 +816,29 @@ func ParsePostRoutesResponse(rsp *http.Response) (*PostRoutesResponse, error) {
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest Route
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest RouteInfoResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
-		response.JSON200 = &dest
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest struct {
+			// Embedded fields due to inline allOf schema
+
+			// 错误字段
+			Field *string `json:"field,omitempty"`
+
+			// 错误描述
+			Msg *string `json:"msg,omitempty"`
+			// Embedded struct due to allOf(#/components/schemas/Err)
+			Err `yaml:",inline"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON422 = &dest
 
 	}
 
@@ -793,6 +859,23 @@ func ParseDeleteRoutesIdResponse(rsp *http.Response) (*DeleteRoutesIdResponse, e
 	}
 
 	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			// Embedded fields due to inline allOf schema
+
+			// 错误字段
+			Field *string `json:"field,omitempty"`
+
+			// 错误描述
+			Msg *string `json:"msg,omitempty"`
+			// Embedded struct due to allOf(#/components/schemas/Err)
+			Err `yaml:",inline"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
 	}
 
 	return response, nil
@@ -813,11 +896,28 @@ func ParseGetRoutesIdResponse(rsp *http.Response) (*GetRoutesIdResponse, error) 
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest Route
+		var dest RouteInfoResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			// Embedded fields due to inline allOf schema
+
+			// 错误字段
+			Field *string `json:"field,omitempty"`
+
+			// 错误描述
+			Msg *string `json:"msg,omitempty"`
+			// Embedded struct due to allOf(#/components/schemas/Err)
+			Err `yaml:",inline"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
 
 	}
 
@@ -839,11 +939,45 @@ func ParsePatchRoutesIdResponse(rsp *http.Response) (*PatchRoutesIdResponse, err
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest Route
+		var dest RouteInfoResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			// Embedded fields due to inline allOf schema
+
+			// 错误字段
+			Field *string `json:"field,omitempty"`
+
+			// 错误描述
+			Msg *string `json:"msg,omitempty"`
+			// Embedded struct due to allOf(#/components/schemas/Err)
+			Err `yaml:",inline"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest struct {
+			// Embedded fields due to inline allOf schema
+
+			// 错误字段
+			Field *string `json:"field,omitempty"`
+
+			// 错误描述
+			Msg *string `json:"msg,omitempty"`
+			// Embedded struct due to allOf(#/components/schemas/Err)
+			Err `yaml:",inline"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON422 = &dest
 
 	}
 
