@@ -99,11 +99,17 @@ func (r *Route) List(ctx context.Context, params ports.GetRoutesParams) (*ports.
 	}
 
 	if params.StartTime != nil {
-		modelQuery.Where(route.CreatedAtGTE(time.Time(*params.StartTime)))
+		start := time.Time(*params.StartTime)
+		if !start.IsZero() {
+			modelQuery.Where(route.CreatedAtGTE(start))
+		}
 	}
 
 	if params.EndTime != nil {
-		modelQuery.Where(route.CreatedAtLTE(time.Time(*params.EndTime)))
+		end := time.Time(*params.EndTime)
+		if !end.IsZero() {
+			modelQuery.Where(route.CreatedAtLTE(end))
+		}
 	}
 
 	total := modelQuery.CountX(ctx)
@@ -185,8 +191,8 @@ func (r *Route) IsUnique(ctx context.Context, tenant string, uri string, method 
 		return err
 	}
 
-	if !exist {
-		return fmt.Errorf("not exist")
+	if exist {
+		return fmt.Errorf("exist not unique")
 	}
 
 	return nil
