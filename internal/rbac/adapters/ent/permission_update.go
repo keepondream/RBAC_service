@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/node"
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/permission"
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/predicate"
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/route"
@@ -81,6 +82,21 @@ func (pu *PermissionUpdate) AddRoutes(r ...*Route) *PermissionUpdate {
 	return pu.AddRouteIDs(ids...)
 }
 
+// AddNodeIDs adds the "nodes" edge to the Node entity by IDs.
+func (pu *PermissionUpdate) AddNodeIDs(ids ...int) *PermissionUpdate {
+	pu.mutation.AddNodeIDs(ids...)
+	return pu
+}
+
+// AddNodes adds the "nodes" edges to the Node entity.
+func (pu *PermissionUpdate) AddNodes(n ...*Node) *PermissionUpdate {
+	ids := make([]int, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return pu.AddNodeIDs(ids...)
+}
+
 // Mutation returns the PermissionMutation object of the builder.
 func (pu *PermissionUpdate) Mutation() *PermissionMutation {
 	return pu.mutation
@@ -105,6 +121,27 @@ func (pu *PermissionUpdate) RemoveRoutes(r ...*Route) *PermissionUpdate {
 		ids[i] = r[i].ID
 	}
 	return pu.RemoveRouteIDs(ids...)
+}
+
+// ClearNodes clears all "nodes" edges to the Node entity.
+func (pu *PermissionUpdate) ClearNodes() *PermissionUpdate {
+	pu.mutation.ClearNodes()
+	return pu
+}
+
+// RemoveNodeIDs removes the "nodes" edge to Node entities by IDs.
+func (pu *PermissionUpdate) RemoveNodeIDs(ids ...int) *PermissionUpdate {
+	pu.mutation.RemoveNodeIDs(ids...)
+	return pu
+}
+
+// RemoveNodes removes "nodes" edges to Node entities.
+func (pu *PermissionUpdate) RemoveNodes(n ...*Node) *PermissionUpdate {
+	ids := make([]int, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return pu.RemoveNodeIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -295,6 +332,60 @@ func (pu *PermissionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if pu.mutation.NodesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   permission.NodesTable,
+			Columns: permission.NodesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: node.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedNodesIDs(); len(nodes) > 0 && !pu.mutation.NodesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   permission.NodesTable,
+			Columns: permission.NodesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: node.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.NodesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   permission.NodesTable,
+			Columns: permission.NodesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: node.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{permission.Label}
@@ -367,6 +458,21 @@ func (puo *PermissionUpdateOne) AddRoutes(r ...*Route) *PermissionUpdateOne {
 	return puo.AddRouteIDs(ids...)
 }
 
+// AddNodeIDs adds the "nodes" edge to the Node entity by IDs.
+func (puo *PermissionUpdateOne) AddNodeIDs(ids ...int) *PermissionUpdateOne {
+	puo.mutation.AddNodeIDs(ids...)
+	return puo
+}
+
+// AddNodes adds the "nodes" edges to the Node entity.
+func (puo *PermissionUpdateOne) AddNodes(n ...*Node) *PermissionUpdateOne {
+	ids := make([]int, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return puo.AddNodeIDs(ids...)
+}
+
 // Mutation returns the PermissionMutation object of the builder.
 func (puo *PermissionUpdateOne) Mutation() *PermissionMutation {
 	return puo.mutation
@@ -391,6 +497,27 @@ func (puo *PermissionUpdateOne) RemoveRoutes(r ...*Route) *PermissionUpdateOne {
 		ids[i] = r[i].ID
 	}
 	return puo.RemoveRouteIDs(ids...)
+}
+
+// ClearNodes clears all "nodes" edges to the Node entity.
+func (puo *PermissionUpdateOne) ClearNodes() *PermissionUpdateOne {
+	puo.mutation.ClearNodes()
+	return puo
+}
+
+// RemoveNodeIDs removes the "nodes" edge to Node entities by IDs.
+func (puo *PermissionUpdateOne) RemoveNodeIDs(ids ...int) *PermissionUpdateOne {
+	puo.mutation.RemoveNodeIDs(ids...)
+	return puo
+}
+
+// RemoveNodes removes "nodes" edges to Node entities.
+func (puo *PermissionUpdateOne) RemoveNodes(n ...*Node) *PermissionUpdateOne {
+	ids := make([]int, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
+	}
+	return puo.RemoveNodeIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -597,6 +724,60 @@ func (puo *PermissionUpdateOne) sqlSave(ctx context.Context) (_node *Permission,
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: route.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.NodesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   permission.NodesTable,
+			Columns: permission.NodesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: node.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedNodesIDs(); len(nodes) > 0 && !puo.mutation.NodesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   permission.NodesTable,
+			Columns: permission.NodesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: node.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.NodesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   permission.NodesTable,
+			Columns: permission.NodesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: node.FieldID,
 				},
 			},
 		}

@@ -52,7 +52,7 @@ func (r *Permission) Model2Response(ctx context.Context, model *ent.Permission) 
 	}
 	return &ports.PermissionInfoResponse{
 		Permission: *r.Ent2Port(model),
-		Route:      &routes,
+		Routes:     &routes,
 	}
 }
 
@@ -129,21 +129,21 @@ func (r *Permission) List(ctx context.Context, params ports.GetPermissionsParams
 		if values, ok := conditions[permission.FieldTenant]; ok {
 			modelQuery.Where(permission.TenantIn(values...))
 		}
-		// 根据角色相关属性查询
-		if values, ok := conditions[fmt.Sprintf("%s.%s", route.Label, route.FieldID)]; ok {
+		// 根据路由相关属性查询
+		if values, ok := conditions[fmt.Sprintf("%s.%s", permission.EdgeRoutes, route.FieldID)]; ok {
 			ids := []int{}
 			for _, v := range values {
 				ids = append(ids, cast.ToInt(v))
 			}
 			modelQuery.Where(permission.HasRoutesWith(route.IDIn(ids...)))
 		}
-		if values, ok := conditions[fmt.Sprintf("%s.%s", route.Label, route.FieldName)]; ok {
+		if values, ok := conditions[fmt.Sprintf("%s.%s", permission.EdgeRoutes, route.FieldName)]; ok {
 			modelQuery.Where(permission.HasRoutesWith(route.NameIn(values...)))
 		}
-		if values, ok := conditions[fmt.Sprintf("%s.%s", route.Label, route.FieldTenant)]; ok {
+		if values, ok := conditions[fmt.Sprintf("%s.%s", permission.EdgeRoutes, route.FieldTenant)]; ok {
 			modelQuery.Where(permission.HasRoutesWith(route.TenantIn(values...)))
 		}
-		if values, ok := conditions[fmt.Sprintf("%s.%s", route.Label, route.FieldMethod)]; ok {
+		if values, ok := conditions[fmt.Sprintf("%s.%s", permission.EdgeRoutes, route.FieldMethod)]; ok {
 			methods := []route.Method{}
 			for _, v := range values {
 				methods = append(methods, route.Method(v))

@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/group"
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/node"
+	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/permission"
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/predicate"
 )
 
@@ -27,9 +28,10 @@ type NodeQuery struct {
 	fields     []string
 	predicates []predicate.Node
 	// eager-loading edges.
-	withParent   *NodeQuery
-	withChildren *NodeQuery
-	withGroups   *GroupQuery
+	withParent      *NodeQuery
+	withChildren    *NodeQuery
+	withGroups      *GroupQuery
+	withPermissions *PermissionQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -125,6 +127,28 @@ func (nq *NodeQuery) QueryGroups() *GroupQuery {
 			sqlgraph.From(node.Table, node.FieldID, selector),
 			sqlgraph.To(group.Table, group.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, node.GroupsTable, node.GroupsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(nq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPermissions chains the current query on the "permissions" edge.
+func (nq *NodeQuery) QueryPermissions() *PermissionQuery {
+	query := &PermissionQuery{config: nq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := nq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := nq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(node.Table, node.FieldID, selector),
+			sqlgraph.To(permission.Table, permission.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, node.PermissionsTable, node.PermissionsPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(nq.driver.Dialect(), step)
 		return fromU, nil
@@ -308,14 +332,15 @@ func (nq *NodeQuery) Clone() *NodeQuery {
 		return nil
 	}
 	return &NodeQuery{
-		config:       nq.config,
-		limit:        nq.limit,
-		offset:       nq.offset,
-		order:        append([]OrderFunc{}, nq.order...),
-		predicates:   append([]predicate.Node{}, nq.predicates...),
-		withParent:   nq.withParent.Clone(),
-		withChildren: nq.withChildren.Clone(),
-		withGroups:   nq.withGroups.Clone(),
+		config:          nq.config,
+		limit:           nq.limit,
+		offset:          nq.offset,
+		order:           append([]OrderFunc{}, nq.order...),
+		predicates:      append([]predicate.Node{}, nq.predicates...),
+		withParent:      nq.withParent.Clone(),
+		withChildren:    nq.withChildren.Clone(),
+		withGroups:      nq.withGroups.Clone(),
+		withPermissions: nq.withPermissions.Clone(),
 		// clone intermediate query.
 		sql:  nq.sql.Clone(),
 		path: nq.path,
@@ -352,6 +377,17 @@ func (nq *NodeQuery) WithGroups(opts ...func(*GroupQuery)) *NodeQuery {
 		opt(query)
 	}
 	nq.withGroups = query
+	return nq
+}
+
+// WithPermissions tells the query-builder to eager-load the nodes that are connected to
+// the "permissions" edge. The optional arguments are used to configure the query builder of the edge.
+func (nq *NodeQuery) WithPermissions(opts ...func(*PermissionQuery)) *NodeQuery {
+	query := &PermissionQuery{config: nq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	nq.withPermissions = query
 	return nq
 }
 
@@ -420,10 +456,11 @@ func (nq *NodeQuery) sqlAll(ctx context.Context) ([]*Node, error) {
 	var (
 		nodes       = []*Node{}
 		_spec       = nq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			nq.withParent != nil,
 			nq.withChildren != nil,
 			nq.withGroups != nil,
+			nq.withPermissions != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
@@ -558,6 +595,71 @@ func (nq *NodeQuery) sqlAll(ctx context.Context) ([]*Node, error) {
 			}
 			for i := range nodes {
 				nodes[i].Edges.Groups = append(nodes[i].Edges.Groups, n)
+			}
+		}
+	}
+
+	if query := nq.withPermissions; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		ids := make(map[int]*Node, len(nodes))
+		for _, node := range nodes {
+			ids[node.ID] = node
+			fks = append(fks, node.ID)
+			node.Edges.Permissions = []*Permission{}
+		}
+		var (
+			edgeids []int
+			edges   = make(map[int][]*Node)
+		)
+		_spec := &sqlgraph.EdgeQuerySpec{
+			Edge: &sqlgraph.EdgeSpec{
+				Inverse: false,
+				Table:   node.PermissionsTable,
+				Columns: node.PermissionsPrimaryKey,
+			},
+			Predicate: func(s *sql.Selector) {
+				s.Where(sql.InValues(node.PermissionsPrimaryKey[0], fks...))
+			},
+			ScanValues: func() [2]interface{} {
+				return [2]interface{}{&sql.NullInt64{}, &sql.NullInt64{}}
+			},
+			Assign: func(out, in interface{}) error {
+				eout, ok := out.(*sql.NullInt64)
+				if !ok || eout == nil {
+					return fmt.Errorf("unexpected id value for edge-out")
+				}
+				ein, ok := in.(*sql.NullInt64)
+				if !ok || ein == nil {
+					return fmt.Errorf("unexpected id value for edge-in")
+				}
+				outValue := int(eout.Int64)
+				inValue := int(ein.Int64)
+				node, ok := ids[outValue]
+				if !ok {
+					return fmt.Errorf("unexpected node id in edges: %v", outValue)
+				}
+				if _, ok := edges[inValue]; !ok {
+					edgeids = append(edgeids, inValue)
+				}
+				edges[inValue] = append(edges[inValue], node)
+				return nil
+			},
+		}
+		if err := sqlgraph.QueryEdges(ctx, nq.driver, _spec); err != nil {
+			return nil, fmt.Errorf(`query edges "permissions": %w`, err)
+		}
+		query.Where(permission.IDIn(edgeids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := edges[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected "permissions" node returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Permissions = append(nodes[i].Edges.Permissions, n)
 			}
 		}
 	}

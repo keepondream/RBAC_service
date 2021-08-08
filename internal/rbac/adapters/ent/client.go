@@ -382,6 +382,22 @@ func (c *NodeClient) QueryGroups(n *Node) *GroupQuery {
 	return query
 }
 
+// QueryPermissions queries the permissions edge of a Node.
+func (c *NodeClient) QueryPermissions(n *Node) *PermissionQuery {
+	query := &PermissionQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := n.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(node.Table, node.FieldID, id),
+			sqlgraph.To(permission.Table, permission.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, node.PermissionsTable, node.PermissionsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(n.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *NodeClient) Hooks() []Hook {
 	return c.hooks.Node
@@ -481,6 +497,22 @@ func (c *PermissionClient) QueryRoutes(pe *Permission) *RouteQuery {
 			sqlgraph.From(permission.Table, permission.FieldID, id),
 			sqlgraph.To(route.Table, route.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, permission.RoutesTable, permission.RoutesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(pe.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNodes queries the nodes edge of a Permission.
+func (c *PermissionClient) QueryNodes(pe *Permission) *NodeQuery {
+	query := &NodeQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pe.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(permission.Table, permission.FieldID, id),
+			sqlgraph.To(node.Table, node.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, permission.NodesTable, permission.NodesPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(pe.driver.Dialect(), step)
 		return fromV, nil

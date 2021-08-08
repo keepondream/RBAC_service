@@ -31,6 +31,8 @@ const (
 	EdgeChildren = "children"
 	// EdgeGroups holds the string denoting the groups edge name in mutations.
 	EdgeGroups = "groups"
+	// EdgePermissions holds the string denoting the permissions edge name in mutations.
+	EdgePermissions = "permissions"
 	// Table holds the table name of the node in the database.
 	Table = "nodes"
 	// ParentTable is the table the holds the parent relation/edge.
@@ -46,6 +48,11 @@ const (
 	// GroupsInverseTable is the table name for the Group entity.
 	// It exists in this package in order to avoid circular dependency with the "group" package.
 	GroupsInverseTable = "groups"
+	// PermissionsTable is the table the holds the permissions relation/edge. The primary key declared below.
+	PermissionsTable = "node_permissions"
+	// PermissionsInverseTable is the table name for the Permission entity.
+	// It exists in this package in order to avoid circular dependency with the "permission" package.
+	PermissionsInverseTable = "permissions"
 )
 
 // Columns holds all SQL columns for node fields.
@@ -64,6 +71,9 @@ var (
 	// GroupsPrimaryKey and GroupsColumn2 are the table columns denoting the
 	// primary key for the groups relation (M2M).
 	GroupsPrimaryKey = []string{"group_id", "node_id"}
+	// PermissionsPrimaryKey and PermissionsColumn2 are the table columns denoting the
+	// primary key for the permissions relation (M2M).
+	PermissionsPrimaryKey = []string{"node_id", "permission_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).

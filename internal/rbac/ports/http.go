@@ -11,17 +11,20 @@ type HttpServer struct {
 	Validate          *validator.Validate
 	RouteService      Router
 	PermissionService Permissioner
+	NodeService       Noder
 }
 
 // NewHttpServer 注入依赖服务
 func NewHttpServer(
 	routeService Router,
 	permissionService Permissioner,
+	nodeService Noder,
 ) *HttpServer {
 	return &HttpServer{
 		Validate:          utils.NewValidate(),
 		RouteService:      routeService,
 		PermissionService: permissionService,
+		NodeService:       nodeService,
 	}
 }
 

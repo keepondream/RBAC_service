@@ -523,6 +523,34 @@ func HasRoutesWith(preds ...predicate.Route) predicate.Permission {
 	})
 }
 
+// HasNodes applies the HasEdge predicate on the "nodes" edge.
+func HasNodes() predicate.Permission {
+	return predicate.Permission(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(NodesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, NodesTable, NodesPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasNodesWith applies the HasEdge predicate on the "nodes" edge with a given conditions (other predicates).
+func HasNodesWith(preds ...predicate.Node) predicate.Permission {
+	return predicate.Permission(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(NodesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, NodesTable, NodesPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Permission) predicate.Permission {
 	return predicate.Permission(func(s *sql.Selector) {

@@ -268,7 +268,7 @@
           }
         },
         "operationId": "get-permissions",
-        "description": "权限列表\nquery: 默认name查询,其余字段多维度,支持子属性精确匹配,例如: route.id:1 查询包含路由ID为1的权限\n例如: route.id:1 route.id:2 查询包含路由ID为1和2的权限",
+        "description": "权限列表\nquery: 默认name查询,其余字段多维度,支持子属性精确匹配,例如: routes.id:1 查询包含路由ID为1的权限\n例如: routes.id:1 routes.id:2 查询包含路由ID为1和2的权限",
         "parameters": [
           {
             "$ref": "#/components/parameters/page"
@@ -469,6 +469,236 @@
           "permission"
         ]
       }
+    },
+    "/nodes": {
+      "get": {
+        "summary": "节点列表",
+        "tags": [
+          "node"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NodeListResponse"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-nodes",
+        "description": "节点列表\nquery: 默认name查询,其余字段多维度,支持子属性精确匹配,\n例如: permissions.id:1 查询包含权限ID为1的节点\n例如: parent.id:1 parent.id:2 查询父级ID为1和2的节点\n例如: children.name:二级菜单 children.name:三级菜单  查询自己包含二级菜单和三级菜单的节点",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          },
+          {
+            "$ref": "#/components/parameters/order"
+          },
+          {
+            "$ref": "#/components/parameters/query"
+          },
+          {
+            "$ref": "#/components/parameters/sort"
+          },
+          {
+            "$ref": "#/components/parameters/start_time"
+          },
+          {
+            "$ref": "#/components/parameters/end_time"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          },
+          "description": ""
+        }
+      },
+      "post": {
+        "summary": "创建节点",
+        "operationId": "post-nodes",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NodeInfoResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "创建节点",
+        "tags": [
+          "node"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "名称"
+                      },
+                      "parent_id": {
+                        "type": "string",
+                        "description": "父级ID,非必填选项"
+                      },
+                      "permission_ids": {
+                        "type": "array",
+                        "description": "权限IDS",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "permission_ids"
+                    ]
+                  },
+                  {
+                    "$ref": "#/components/schemas/ItemTenant"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ItemData"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ItemType"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/nodes/{id}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "节点ID"
+        }
+      ],
+      "get": {
+        "summary": "获取节点详情",
+        "tags": [
+          "node"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NodeInfoResponse"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-nodes-id",
+        "description": "获取节点详情",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "更新节点信息",
+        "operationId": "patch-nodes-id",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NodeInfoResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "更新节点信息",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "名称"
+                  },
+                  "parent_id": {
+                    "type": "string",
+                    "description": "父级ID"
+                  },
+                  "data": {
+                    "$ref": "#/components/schemas/ItemData"
+                  },
+                  "tenant": {
+                    "$ref": "#/components/schemas/ItemTenant"
+                  },
+                  "permission_ids": {
+                    "type": "array",
+                    "description": "权限ID",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "node"
+        ]
+      },
+      "delete": {
+        "summary": "删除节点",
+        "operationId": "delete-nodes-id",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "$ref": "#/components/responses/ErrResponse"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "description": "删除节点"
+      }
     }
   },
   "components": {
@@ -565,7 +795,7 @@
           {
             "type": "object",
             "properties": {
-              "route": {
+              "routes": {
                 "type": "array",
                 "items": {
                   "$ref": "#/components/schemas/Route"
@@ -650,6 +880,57 @@
           }
         ]
       },
+      "NodeListResponse": {
+        "title": "NodeListResponse",
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NodeInfoResponse"
+            }
+          }
+        },
+        "required": [
+          "total",
+          "items"
+        ]
+      },
+      "NodeInfoResponse": {
+        "title": "NodeInfoResponse",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Node"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "parent": {
+                "$ref": "#/components/schemas/Node"
+              },
+              "children": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Node"
+                }
+              },
+              "permissions": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Permission"
+                }
+              }
+            },
+            "required": [
+              "children",
+              "permissions"
+            ]
+          }
+        ]
+      },
       "Group": {
         "title": "Group",
         "allOf": [
@@ -683,6 +964,40 @@
           },
           {
             "$ref": "#/components/schemas/ItemUpdatedat"
+          }
+        ]
+      },
+      "GroupListResponse": {
+        "title": "GroupListResponse",
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GroupInfoResponse"
+            }
+          }
+        }
+      },
+      "GroupInfoResponse": {
+        "title": "GroupInfoResponse",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Group"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "nodes": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Node"
+                }
+              }
+            }
           }
         ]
       },
@@ -931,6 +1246,9 @@
     }
   },
   "tags": [
+    {
+      "name": "node"
+    },
     {
       "name": "permission"
     },

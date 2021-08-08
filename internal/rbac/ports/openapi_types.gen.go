@@ -97,11 +97,56 @@ type ItemTenant struct {
 	Tenant string `json:"tenant"`
 }
 
+// ItemType defines model for ItemType.
+type ItemType struct {
+
+	// 节点或者分组的类型可自定义 例如 role:角色, menu:菜单, element:页面元素 ...等等
+	Type string `json:"type"`
+}
+
 // ItemUpdatedat defines model for ItemUpdatedat.
 type ItemUpdatedat struct {
 
 	// 更新时间 零时区时间格式: YYYY-MM-DDTHH:MM:SSZ
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// Node defines model for Node.
+type Node struct {
+	// Embedded fields due to inline allOf schema
+	Id string `json:"id"`
+
+	// 节点名称
+	Name string `json:"name"`
+
+	// 父节点ID
+	ParentId string `json:"parent_id"`
+	// Embedded struct due to allOf(#/components/schemas/ItemData)
+	ItemData `yaml:",inline"`
+	// Embedded struct due to allOf(#/components/schemas/ItemTenant)
+	ItemTenant `yaml:",inline"`
+	// Embedded struct due to allOf(#/components/schemas/ItemType)
+	ItemType `yaml:",inline"`
+	// Embedded struct due to allOf(#/components/schemas/ItemCreatedat)
+	ItemCreatedat `yaml:",inline"`
+	// Embedded struct due to allOf(#/components/schemas/ItemUpdatedat)
+	ItemUpdatedat `yaml:",inline"`
+}
+
+// NodeInfoResponse defines model for NodeInfoResponse.
+type NodeInfoResponse struct {
+	// Embedded struct due to allOf(#/components/schemas/Node)
+	Node `yaml:",inline"`
+	// Embedded fields due to inline allOf schema
+	Children    []Node       `json:"children"`
+	Parent      *Node        `json:"parent,omitempty"`
+	Permissions []Permission `json:"permissions"`
+}
+
+// NodeListResponse defines model for NodeListResponse.
+type NodeListResponse struct {
+	Items []NodeInfoResponse `json:"items"`
+	Total string             `json:"total"`
 }
 
 // Permission defines model for Permission.
@@ -126,7 +171,7 @@ type PermissionInfoResponse struct {
 	// Embedded struct due to allOf(#/components/schemas/Permission)
 	Permission `yaml:",inline"`
 	// Embedded fields due to inline allOf schema
-	Route *[]Route `json:"route,omitempty"`
+	Routes *[]Route `json:"routes,omitempty"`
 }
 
 // PermissionListResponse defines model for PermissionListResponse.
@@ -200,6 +245,69 @@ type ErrResponse struct {
 	Msg *string `json:"msg,omitempty"`
 	// Embedded struct due to allOf(#/components/schemas/Err)
 	Err `yaml:",inline"`
+}
+
+// GetNodesParams defines parameters for GetNodes.
+type GetNodesParams struct {
+
+	// 页码
+	Page Page `json:"page"`
+
+	// 分页数量 默认20, 最大100
+	PerPage *PerPage `json:"per_page,omitempty"`
+
+	// 排序方式 只支持 asc 或者 desc
+	Order GetNodesParamsOrder `json:"order"`
+
+	// - 查询关键字以空格分割,多个维度用冒号连接关键字,每个关键字需要用encode `示例: 查询默认关键字为name "route1 route2"两个名称的路由, 域标识为 domain1 或者 domain2 的数据`  ``` http://host.com?query=${encodeURIComponent('route1')} ${encodeURIComponent('route2')} tenant:${encodeURIComponent('domain1')} tenant:${encodeURIComponent('domain2')} ```
+	Query *Query `json:"query,omitempty"`
+
+	// 排序字段 多个组合用逗号分隔 示例: id,name
+	Sort *Sort `json:"sort,omitempty"`
+
+	// 起始时间 零时区时间格式: YYYY-MM-DDTHH:MM:SSZ
+	StartTime *StartTime `json:"start_time,omitempty"`
+
+	// 结束时间 零时区时间格式: YYYY-MM-DDTHH:MM:SSZ
+	EndTime *EndTime `json:"end_time,omitempty"`
+}
+
+// GetNodesParamsOrder defines parameters for GetNodes.
+type GetNodesParamsOrder string
+
+// PostNodesJSONBody defines parameters for PostNodes.
+type PostNodesJSONBody struct {
+	// Embedded fields due to inline allOf schema
+
+	// 名称
+	Name string `json:"name"`
+
+	// 父级ID,非必填选项
+	ParentId *string `json:"parent_id,omitempty"`
+
+	// 权限IDS
+	PermissionIds []string `json:"permission_ids"`
+	// Embedded struct due to allOf(#/components/schemas/ItemTenant)
+	ItemTenant `yaml:",inline"`
+	// Embedded struct due to allOf(#/components/schemas/ItemData)
+	ItemData `yaml:",inline"`
+	// Embedded struct due to allOf(#/components/schemas/ItemType)
+	ItemType `yaml:",inline"`
+}
+
+// PatchNodesIdJSONBody defines parameters for PatchNodesId.
+type PatchNodesIdJSONBody struct {
+	Data *ItemData `json:"data,omitempty"`
+
+	// 名称
+	Name *string `json:"name,omitempty"`
+
+	// 父级ID
+	ParentId *string `json:"parent_id,omitempty"`
+
+	// 权限ID
+	PermissionIds *[]string   `json:"permission_ids,omitempty"`
+	Tenant        *ItemTenant `json:"tenant,omitempty"`
 }
 
 // GetPermissionsParams defines parameters for GetPermissions.
@@ -315,6 +423,12 @@ type PatchRoutesIdJSONBody struct {
 	// 路由路径,path,拦截URL
 	Uri *string `json:"uri,omitempty"`
 }
+
+// PostNodesJSONRequestBody defines body for PostNodes for application/json ContentType.
+type PostNodesJSONRequestBody PostNodesJSONBody
+
+// PatchNodesIdJSONRequestBody defines body for PatchNodesId for application/json ContentType.
+type PatchNodesIdJSONRequestBody PatchNodesIdJSONBody
 
 // PostPermissionsJSONRequestBody defines body for PostPermissions for application/json ContentType.
 type PostPermissionsJSONRequestBody PostPermissionsJSONBody

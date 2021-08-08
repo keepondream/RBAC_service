@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/group"
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/node"
+	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/permission"
 )
 
 // NodeCreate is the builder for creating a Node entity.
@@ -120,6 +121,21 @@ func (nc *NodeCreate) AddGroups(g ...*Group) *NodeCreate {
 		ids[i] = g[i].ID
 	}
 	return nc.AddGroupIDs(ids...)
+}
+
+// AddPermissionIDs adds the "permissions" edge to the Permission entity by IDs.
+func (nc *NodeCreate) AddPermissionIDs(ids ...int) *NodeCreate {
+	nc.mutation.AddPermissionIDs(ids...)
+	return nc
+}
+
+// AddPermissions adds the "permissions" edges to the Permission entity.
+func (nc *NodeCreate) AddPermissions(p ...*Permission) *NodeCreate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return nc.AddPermissionIDs(ids...)
 }
 
 // Mutation returns the NodeMutation object of the builder.
@@ -344,6 +360,25 @@ func (nc *NodeCreate) createSpec() (*Node, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: group.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := nc.mutation.PermissionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   node.PermissionsTable,
+			Columns: node.PermissionsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: permission.FieldID,
 				},
 			},
 		}

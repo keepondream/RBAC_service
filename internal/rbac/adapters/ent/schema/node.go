@@ -46,6 +46,7 @@ func (Node) Edges() []ent.Edge {
 			Unique().Field("parent_id"),
 		edge.From("groups", Group.Type).
 			Ref("nodes"),
+		edge.To("permissions", Permission.Type),
 	}
 }
 

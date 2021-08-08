@@ -47,5 +47,7 @@ func (Permission) Indexes() []ent.Index {
 func (Permission) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("routes", Route.Type),
+		edge.From("nodes", Node.Type).
+			Ref("permissions"),
 	}
 }

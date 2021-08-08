@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/group"
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/node"
+	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/permission"
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/predicate"
 )
 
@@ -128,6 +129,21 @@ func (nu *NodeUpdate) AddGroups(g ...*Group) *NodeUpdate {
 	return nu.AddGroupIDs(ids...)
 }
 
+// AddPermissionIDs adds the "permissions" edge to the Permission entity by IDs.
+func (nu *NodeUpdate) AddPermissionIDs(ids ...int) *NodeUpdate {
+	nu.mutation.AddPermissionIDs(ids...)
+	return nu
+}
+
+// AddPermissions adds the "permissions" edges to the Permission entity.
+func (nu *NodeUpdate) AddPermissions(p ...*Permission) *NodeUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return nu.AddPermissionIDs(ids...)
+}
+
 // Mutation returns the NodeMutation object of the builder.
 func (nu *NodeUpdate) Mutation() *NodeMutation {
 	return nu.mutation
@@ -179,6 +195,27 @@ func (nu *NodeUpdate) RemoveGroups(g ...*Group) *NodeUpdate {
 		ids[i] = g[i].ID
 	}
 	return nu.RemoveGroupIDs(ids...)
+}
+
+// ClearPermissions clears all "permissions" edges to the Permission entity.
+func (nu *NodeUpdate) ClearPermissions() *NodeUpdate {
+	nu.mutation.ClearPermissions()
+	return nu
+}
+
+// RemovePermissionIDs removes the "permissions" edge to Permission entities by IDs.
+func (nu *NodeUpdate) RemovePermissionIDs(ids ...int) *NodeUpdate {
+	nu.mutation.RemovePermissionIDs(ids...)
+	return nu
+}
+
+// RemovePermissions removes "permissions" edges to Permission entities.
+func (nu *NodeUpdate) RemovePermissions(p ...*Permission) *NodeUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return nu.RemovePermissionIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -470,6 +507,60 @@ func (nu *NodeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if nu.mutation.PermissionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   node.PermissionsTable,
+			Columns: node.PermissionsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: permission.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := nu.mutation.RemovedPermissionsIDs(); len(nodes) > 0 && !nu.mutation.PermissionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   node.PermissionsTable,
+			Columns: node.PermissionsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: permission.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := nu.mutation.PermissionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   node.PermissionsTable,
+			Columns: node.PermissionsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: permission.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, nu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{node.Label}
@@ -589,6 +680,21 @@ func (nuo *NodeUpdateOne) AddGroups(g ...*Group) *NodeUpdateOne {
 	return nuo.AddGroupIDs(ids...)
 }
 
+// AddPermissionIDs adds the "permissions" edge to the Permission entity by IDs.
+func (nuo *NodeUpdateOne) AddPermissionIDs(ids ...int) *NodeUpdateOne {
+	nuo.mutation.AddPermissionIDs(ids...)
+	return nuo
+}
+
+// AddPermissions adds the "permissions" edges to the Permission entity.
+func (nuo *NodeUpdateOne) AddPermissions(p ...*Permission) *NodeUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return nuo.AddPermissionIDs(ids...)
+}
+
 // Mutation returns the NodeMutation object of the builder.
 func (nuo *NodeUpdateOne) Mutation() *NodeMutation {
 	return nuo.mutation
@@ -640,6 +746,27 @@ func (nuo *NodeUpdateOne) RemoveGroups(g ...*Group) *NodeUpdateOne {
 		ids[i] = g[i].ID
 	}
 	return nuo.RemoveGroupIDs(ids...)
+}
+
+// ClearPermissions clears all "permissions" edges to the Permission entity.
+func (nuo *NodeUpdateOne) ClearPermissions() *NodeUpdateOne {
+	nuo.mutation.ClearPermissions()
+	return nuo
+}
+
+// RemovePermissionIDs removes the "permissions" edge to Permission entities by IDs.
+func (nuo *NodeUpdateOne) RemovePermissionIDs(ids ...int) *NodeUpdateOne {
+	nuo.mutation.RemovePermissionIDs(ids...)
+	return nuo
+}
+
+// RemovePermissions removes "permissions" edges to Permission entities.
+func (nuo *NodeUpdateOne) RemovePermissions(p ...*Permission) *NodeUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return nuo.RemovePermissionIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -947,6 +1074,60 @@ func (nuo *NodeUpdateOne) sqlSave(ctx context.Context) (_node *Node, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: group.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nuo.mutation.PermissionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   node.PermissionsTable,
+			Columns: node.PermissionsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: permission.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := nuo.mutation.RemovedPermissionsIDs(); len(nodes) > 0 && !nuo.mutation.PermissionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   node.PermissionsTable,
+			Columns: node.PermissionsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: permission.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := nuo.mutation.PermissionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   node.PermissionsTable,
+			Columns: node.PermissionsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: permission.FieldID,
 				},
 			},
 		}

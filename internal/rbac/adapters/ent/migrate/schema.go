@@ -137,6 +137,31 @@ var (
 			},
 		},
 	}
+	// NodePermissionsColumns holds the columns for the "node_permissions" table.
+	NodePermissionsColumns = []*schema.Column{
+		{Name: "node_id", Type: field.TypeInt},
+		{Name: "permission_id", Type: field.TypeInt},
+	}
+	// NodePermissionsTable holds the schema information for the "node_permissions" table.
+	NodePermissionsTable = &schema.Table{
+		Name:       "node_permissions",
+		Columns:    NodePermissionsColumns,
+		PrimaryKey: []*schema.Column{NodePermissionsColumns[0], NodePermissionsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "node_permissions_node_id",
+				Columns:    []*schema.Column{NodePermissionsColumns[0]},
+				RefColumns: []*schema.Column{NodesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "node_permissions_permission_id",
+				Columns:    []*schema.Column{NodePermissionsColumns[1]},
+				RefColumns: []*schema.Column{PermissionsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// PermissionRoutesColumns holds the columns for the "permission_routes" table.
 	PermissionRoutesColumns = []*schema.Column{
 		{Name: "permission_id", Type: field.TypeInt},
@@ -169,6 +194,7 @@ var (
 		PermissionsTable,
 		RoutesTable,
 		GroupNodesTable,
+		NodePermissionsTable,
 		PermissionRoutesTable,
 	}
 )
@@ -177,6 +203,8 @@ func init() {
 	NodesTable.ForeignKeys[0].RefTable = NodesTable
 	GroupNodesTable.ForeignKeys[0].RefTable = GroupsTable
 	GroupNodesTable.ForeignKeys[1].RefTable = NodesTable
+	NodePermissionsTable.ForeignKeys[0].RefTable = NodesTable
+	NodePermissionsTable.ForeignKeys[1].RefTable = PermissionsTable
 	PermissionRoutesTable.ForeignKeys[0].RefTable = PermissionsTable
 	PermissionRoutesTable.ForeignKeys[1].RefTable = RoutesTable
 }

@@ -90,6 +90,25 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// GetNodes request  with any body
+	GetNodesWithBody(ctx context.Context, params *GetNodesParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PostNodes request  with any body
+	PostNodesWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PostNodes(ctx context.Context, body PostNodesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteNodesId request
+	DeleteNodesId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetNodesId request  with any body
+	GetNodesIdWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PatchNodesId request  with any body
+	PatchNodesIdWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PatchNodesId(ctx context.Context, id string, body PatchNodesIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetPermissions request  with any body
 	GetPermissionsWithBody(ctx context.Context, params *GetPermissionsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -127,6 +146,90 @@ type ClientInterface interface {
 	PatchRoutesIdWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	PatchRoutesId(ctx context.Context, id string, body PatchRoutesIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) GetNodesWithBody(ctx context.Context, params *GetNodesParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetNodesRequestWithBody(c.Server, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostNodesWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostNodesRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostNodes(ctx context.Context, body PostNodesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostNodesRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteNodesId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteNodesIdRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetNodesIdWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetNodesIdRequestWithBody(c.Server, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PatchNodesIdWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPatchNodesIdRequestWithBody(c.Server, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PatchNodesId(ctx context.Context, id string, body PatchNodesIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPatchNodesIdRequest(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 func (c *Client) GetPermissionsWithBody(ctx context.Context, params *GetPermissionsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -295,6 +398,300 @@ func (c *Client) PatchRoutesId(ctx context.Context, id string, body PatchRoutesI
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+// NewGetNodesRequestWithBody generates requests for GetNodes with any type of body
+func NewGetNodesRequestWithBody(server string, params *GetNodesParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/nodes")
+	if operationPath[0] == '/' {
+		operationPath = operationPath[1:]
+	}
+	operationURL := url.URL{
+		Path: operationPath,
+	}
+
+	queryURL := serverURL.ResolveReference(&operationURL)
+
+	queryValues := queryURL.Query()
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, params.Page); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
+	}
+
+	if params.PerPage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "order", runtime.ParamLocationQuery, params.Order); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
+	}
+
+	if params.Query != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "query", runtime.ParamLocationQuery, *params.Query); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Sort != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sort", runtime.ParamLocationQuery, *params.Sort); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.StartTime != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "start_time", runtime.ParamLocationQuery, *params.StartTime); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.EndTime != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "end_time", runtime.ParamLocationQuery, *params.EndTime); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPostNodesRequest calls the generic PostNodes builder with application/json body
+func NewPostNodesRequest(server string, body PostNodesJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostNodesRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewPostNodesRequestWithBody generates requests for PostNodes with any type of body
+func NewPostNodesRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/nodes")
+	if operationPath[0] == '/' {
+		operationPath = operationPath[1:]
+	}
+	operationURL := url.URL{
+		Path: operationPath,
+	}
+
+	queryURL := serverURL.ResolveReference(&operationURL)
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteNodesIdRequest generates requests for DeleteNodesId
+func NewDeleteNodesIdRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/nodes/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = operationPath[1:]
+	}
+	operationURL := url.URL{
+		Path: operationPath,
+	}
+
+	queryURL := serverURL.ResolveReference(&operationURL)
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetNodesIdRequestWithBody generates requests for GetNodesId with any type of body
+func NewGetNodesIdRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/nodes/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = operationPath[1:]
+	}
+	operationURL := url.URL{
+		Path: operationPath,
+	}
+
+	queryURL := serverURL.ResolveReference(&operationURL)
+
+	req, err := http.NewRequest("GET", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPatchNodesIdRequest calls the generic PatchNodesId builder with application/json body
+func NewPatchNodesIdRequest(server string, id string, body PatchNodesIdJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPatchNodesIdRequestWithBody(server, id, "application/json", bodyReader)
+}
+
+// NewPatchNodesIdRequestWithBody generates requests for PatchNodesId with any type of body
+func NewPatchNodesIdRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/nodes/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = operationPath[1:]
+	}
+	operationURL := url.URL{
+		Path: operationPath,
+	}
+
+	queryURL := serverURL.ResolveReference(&operationURL)
+
+	req, err := http.NewRequest("PATCH", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
 }
 
 // NewGetPermissionsRequestWithBody generates requests for GetPermissions with any type of body
@@ -928,6 +1325,25 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// GetNodes request  with any body
+	GetNodesWithBodyWithResponse(ctx context.Context, params *GetNodesParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetNodesResponse, error)
+
+	// PostNodes request  with any body
+	PostNodesWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostNodesResponse, error)
+
+	PostNodesWithResponse(ctx context.Context, body PostNodesJSONRequestBody, reqEditors ...RequestEditorFn) (*PostNodesResponse, error)
+
+	// DeleteNodesId request
+	DeleteNodesIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeleteNodesIdResponse, error)
+
+	// GetNodesId request  with any body
+	GetNodesIdWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetNodesIdResponse, error)
+
+	// PatchNodesId request  with any body
+	PatchNodesIdWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchNodesIdResponse, error)
+
+	PatchNodesIdWithResponse(ctx context.Context, id string, body PatchNodesIdJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchNodesIdResponse, error)
+
 	// GetPermissions request  with any body
 	GetPermissionsWithBodyWithResponse(ctx context.Context, params *GetPermissionsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetPermissionsResponse, error)
 
@@ -965,6 +1381,126 @@ type ClientWithResponsesInterface interface {
 	PatchRoutesIdWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchRoutesIdResponse, error)
 
 	PatchRoutesIdWithResponse(ctx context.Context, id string, body PatchRoutesIdJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchRoutesIdResponse, error)
+}
+
+type GetNodesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *NodeListResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetNodesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetNodesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PostNodesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *NodeInfoResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r PostNodesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostNodesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteNodesIdResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON400      *struct {
+		// Embedded fields due to inline allOf schema
+
+		// 错误字段
+		Field *string `json:"field,omitempty"`
+
+		// 错误描述
+		Msg *string `json:"msg,omitempty"`
+		// Embedded struct due to allOf(#/components/schemas/Err)
+		Err `yaml:",inline"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteNodesIdResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteNodesIdResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetNodesIdResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *NodeInfoResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetNodesIdResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetNodesIdResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PatchNodesIdResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *NodeInfoResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r PatchNodesIdResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PatchNodesIdResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
 }
 
 type GetPermissionsResponse struct {
@@ -1240,6 +1776,67 @@ func (r PatchRoutesIdResponse) StatusCode() int {
 	return 0
 }
 
+// GetNodesWithBodyWithResponse request with arbitrary body returning *GetNodesResponse
+func (c *ClientWithResponses) GetNodesWithBodyWithResponse(ctx context.Context, params *GetNodesParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetNodesResponse, error) {
+	rsp, err := c.GetNodesWithBody(ctx, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetNodesResponse(rsp)
+}
+
+// PostNodesWithBodyWithResponse request with arbitrary body returning *PostNodesResponse
+func (c *ClientWithResponses) PostNodesWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostNodesResponse, error) {
+	rsp, err := c.PostNodesWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostNodesResponse(rsp)
+}
+
+func (c *ClientWithResponses) PostNodesWithResponse(ctx context.Context, body PostNodesJSONRequestBody, reqEditors ...RequestEditorFn) (*PostNodesResponse, error) {
+	rsp, err := c.PostNodes(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostNodesResponse(rsp)
+}
+
+// DeleteNodesIdWithResponse request returning *DeleteNodesIdResponse
+func (c *ClientWithResponses) DeleteNodesIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeleteNodesIdResponse, error) {
+	rsp, err := c.DeleteNodesId(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteNodesIdResponse(rsp)
+}
+
+// GetNodesIdWithBodyWithResponse request with arbitrary body returning *GetNodesIdResponse
+func (c *ClientWithResponses) GetNodesIdWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetNodesIdResponse, error) {
+	rsp, err := c.GetNodesIdWithBody(ctx, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetNodesIdResponse(rsp)
+}
+
+// PatchNodesIdWithBodyWithResponse request with arbitrary body returning *PatchNodesIdResponse
+func (c *ClientWithResponses) PatchNodesIdWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchNodesIdResponse, error) {
+	rsp, err := c.PatchNodesIdWithBody(ctx, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePatchNodesIdResponse(rsp)
+}
+
+func (c *ClientWithResponses) PatchNodesIdWithResponse(ctx context.Context, id string, body PatchNodesIdJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchNodesIdResponse, error) {
+	rsp, err := c.PatchNodesId(ctx, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePatchNodesIdResponse(rsp)
+}
+
 // GetPermissionsWithBodyWithResponse request with arbitrary body returning *GetPermissionsResponse
 func (c *ClientWithResponses) GetPermissionsWithBodyWithResponse(ctx context.Context, params *GetPermissionsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetPermissionsResponse, error) {
 	rsp, err := c.GetPermissionsWithBody(ctx, params, contentType, body, reqEditors...)
@@ -1360,6 +1957,146 @@ func (c *ClientWithResponses) PatchRoutesIdWithResponse(ctx context.Context, id 
 		return nil, err
 	}
 	return ParsePatchRoutesIdResponse(rsp)
+}
+
+// ParseGetNodesResponse parses an HTTP response from a GetNodesWithResponse call
+func ParseGetNodesResponse(rsp *http.Response) (*GetNodesResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetNodesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest NodeListResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePostNodesResponse parses an HTTP response from a PostNodesWithResponse call
+func ParsePostNodesResponse(rsp *http.Response) (*PostNodesResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostNodesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest NodeInfoResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteNodesIdResponse parses an HTTP response from a DeleteNodesIdWithResponse call
+func ParseDeleteNodesIdResponse(rsp *http.Response) (*DeleteNodesIdResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteNodesIdResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest struct {
+			// Embedded fields due to inline allOf schema
+
+			// 错误字段
+			Field *string `json:"field,omitempty"`
+
+			// 错误描述
+			Msg *string `json:"msg,omitempty"`
+			// Embedded struct due to allOf(#/components/schemas/Err)
+			Err `yaml:",inline"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetNodesIdResponse parses an HTTP response from a GetNodesIdWithResponse call
+func ParseGetNodesIdResponse(rsp *http.Response) (*GetNodesIdResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetNodesIdResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest NodeInfoResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePatchNodesIdResponse parses an HTTP response from a PatchNodesIdWithResponse call
+func ParsePatchNodesIdResponse(rsp *http.Response) (*PatchNodesIdResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PatchNodesIdResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest NodeInfoResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
 }
 
 // ParseGetPermissionsResponse parses an HTTP response from a GetPermissionsWithResponse call
