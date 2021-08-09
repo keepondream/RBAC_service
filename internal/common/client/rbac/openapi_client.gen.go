@@ -90,6 +90,25 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// GetGroups request  with any body
+	GetGroupsWithBody(ctx context.Context, params *GetGroupsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PostGroups request  with any body
+	PostGroupsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PostGroups(ctx context.Context, body PostGroupsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteGroupsId request
+	DeleteGroupsId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetGroupsId request  with any body
+	GetGroupsIdWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PatchGroupsId request  with any body
+	PatchGroupsIdWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PatchGroupsId(ctx context.Context, id string, body PatchGroupsIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetNodes request  with any body
 	GetNodesWithBody(ctx context.Context, params *GetNodesParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -146,6 +165,90 @@ type ClientInterface interface {
 	PatchRoutesIdWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	PatchRoutesId(ctx context.Context, id string, body PatchRoutesIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) GetGroupsWithBody(ctx context.Context, params *GetGroupsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetGroupsRequestWithBody(c.Server, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostGroupsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostGroupsRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostGroups(ctx context.Context, body PostGroupsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostGroupsRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteGroupsId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteGroupsIdRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetGroupsIdWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetGroupsIdRequestWithBody(c.Server, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PatchGroupsIdWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPatchGroupsIdRequestWithBody(c.Server, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PatchGroupsId(ctx context.Context, id string, body PatchGroupsIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPatchGroupsIdRequest(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 func (c *Client) GetNodesWithBody(ctx context.Context, params *GetNodesParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -398,6 +501,300 @@ func (c *Client) PatchRoutesId(ctx context.Context, id string, body PatchRoutesI
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+// NewGetGroupsRequestWithBody generates requests for GetGroups with any type of body
+func NewGetGroupsRequestWithBody(server string, params *GetGroupsParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/groups")
+	if operationPath[0] == '/' {
+		operationPath = operationPath[1:]
+	}
+	operationURL := url.URL{
+		Path: operationPath,
+	}
+
+	queryURL := serverURL.ResolveReference(&operationURL)
+
+	queryValues := queryURL.Query()
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, params.Page); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
+	}
+
+	if params.PerPage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "order", runtime.ParamLocationQuery, params.Order); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
+	}
+
+	if params.Query != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "query", runtime.ParamLocationQuery, *params.Query); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Sort != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sort", runtime.ParamLocationQuery, *params.Sort); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.StartTime != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "start_time", runtime.ParamLocationQuery, *params.StartTime); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.EndTime != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "end_time", runtime.ParamLocationQuery, *params.EndTime); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPostGroupsRequest calls the generic PostGroups builder with application/json body
+func NewPostGroupsRequest(server string, body PostGroupsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostGroupsRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewPostGroupsRequestWithBody generates requests for PostGroups with any type of body
+func NewPostGroupsRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/groups")
+	if operationPath[0] == '/' {
+		operationPath = operationPath[1:]
+	}
+	operationURL := url.URL{
+		Path: operationPath,
+	}
+
+	queryURL := serverURL.ResolveReference(&operationURL)
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteGroupsIdRequest generates requests for DeleteGroupsId
+func NewDeleteGroupsIdRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/groups/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = operationPath[1:]
+	}
+	operationURL := url.URL{
+		Path: operationPath,
+	}
+
+	queryURL := serverURL.ResolveReference(&operationURL)
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetGroupsIdRequestWithBody generates requests for GetGroupsId with any type of body
+func NewGetGroupsIdRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/groups/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = operationPath[1:]
+	}
+	operationURL := url.URL{
+		Path: operationPath,
+	}
+
+	queryURL := serverURL.ResolveReference(&operationURL)
+
+	req, err := http.NewRequest("GET", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPatchGroupsIdRequest calls the generic PatchGroupsId builder with application/json body
+func NewPatchGroupsIdRequest(server string, id string, body PatchGroupsIdJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPatchGroupsIdRequestWithBody(server, id, "application/json", bodyReader)
+}
+
+// NewPatchGroupsIdRequestWithBody generates requests for PatchGroupsId with any type of body
+func NewPatchGroupsIdRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/groups/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = operationPath[1:]
+	}
+	operationURL := url.URL{
+		Path: operationPath,
+	}
+
+	queryURL := serverURL.ResolveReference(&operationURL)
+
+	req, err := http.NewRequest("PATCH", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
 }
 
 // NewGetNodesRequestWithBody generates requests for GetNodes with any type of body
@@ -1325,6 +1722,25 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// GetGroups request  with any body
+	GetGroupsWithBodyWithResponse(ctx context.Context, params *GetGroupsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetGroupsResponse, error)
+
+	// PostGroups request  with any body
+	PostGroupsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostGroupsResponse, error)
+
+	PostGroupsWithResponse(ctx context.Context, body PostGroupsJSONRequestBody, reqEditors ...RequestEditorFn) (*PostGroupsResponse, error)
+
+	// DeleteGroupsId request
+	DeleteGroupsIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeleteGroupsIdResponse, error)
+
+	// GetGroupsId request  with any body
+	GetGroupsIdWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetGroupsIdResponse, error)
+
+	// PatchGroupsId request  with any body
+	PatchGroupsIdWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchGroupsIdResponse, error)
+
+	PatchGroupsIdWithResponse(ctx context.Context, id string, body PatchGroupsIdJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchGroupsIdResponse, error)
+
 	// GetNodes request  with any body
 	GetNodesWithBodyWithResponse(ctx context.Context, params *GetNodesParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetNodesResponse, error)
 
@@ -1383,6 +1799,115 @@ type ClientWithResponsesInterface interface {
 	PatchRoutesIdWithResponse(ctx context.Context, id string, body PatchRoutesIdJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchRoutesIdResponse, error)
 }
 
+type GetGroupsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *GroupListResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetGroupsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetGroupsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PostGroupsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *GroupInfoResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r PostGroupsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostGroupsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteGroupsIdResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteGroupsIdResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteGroupsIdResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetGroupsIdResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *GroupInfoResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetGroupsIdResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetGroupsIdResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PatchGroupsIdResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *GroupInfoResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r PatchGroupsIdResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PatchGroupsIdResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetNodesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -1408,7 +1933,7 @@ func (r GetNodesResponse) StatusCode() int {
 type PostNodesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *NodeInfoResponse
+	JSON201      *NodeInfoResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1431,15 +1956,21 @@ type DeleteNodesIdResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON400      *struct {
-		// Embedded fields due to inline allOf schema
+
+		// 错误码
+		//
+		// |Code|Description|
+		// |----|----|
+		// |422.000|数据不存在|
+		// |422.111|数据已存在|
+		// |422.999|参数有误|
+		Code *ErrCode `json:"code,omitempty"`
 
 		// 错误字段
 		Field *string `json:"field,omitempty"`
 
 		// 错误描述
 		Msg *string `json:"msg,omitempty"`
-		// Embedded struct due to allOf(#/components/schemas/Err)
-		Err `yaml:",inline"`
 	}
 }
 
@@ -1528,7 +2059,7 @@ func (r GetPermissionsResponse) StatusCode() int {
 type PostPermissionsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *PermissionInfoResponse
+	JSON201      *PermissionInfoResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1639,15 +2170,21 @@ type PostRoutesResponse struct {
 	HTTPResponse *http.Response
 	JSON201      *RouteInfoResponse
 	JSON422      *struct {
-		// Embedded fields due to inline allOf schema
+
+		// 错误码
+		//
+		// |Code|Description|
+		// |----|----|
+		// |422.000|数据不存在|
+		// |422.111|数据已存在|
+		// |422.999|参数有误|
+		Code *ErrCode `json:"code,omitempty"`
 
 		// 错误字段
 		Field *string `json:"field,omitempty"`
 
 		// 错误描述
 		Msg *string `json:"msg,omitempty"`
-		// Embedded struct due to allOf(#/components/schemas/Err)
-		Err `yaml:",inline"`
 	}
 }
 
@@ -1671,15 +2208,21 @@ type DeleteRoutesIdResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON404      *struct {
-		// Embedded fields due to inline allOf schema
+
+		// 错误码
+		//
+		// |Code|Description|
+		// |----|----|
+		// |422.000|数据不存在|
+		// |422.111|数据已存在|
+		// |422.999|参数有误|
+		Code *ErrCode `json:"code,omitempty"`
 
 		// 错误字段
 		Field *string `json:"field,omitempty"`
 
 		// 错误描述
 		Msg *string `json:"msg,omitempty"`
-		// Embedded struct due to allOf(#/components/schemas/Err)
-		Err `yaml:",inline"`
 	}
 }
 
@@ -1704,15 +2247,21 @@ type GetRoutesIdResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *RouteInfoResponse
 	JSON404      *struct {
-		// Embedded fields due to inline allOf schema
+
+		// 错误码
+		//
+		// |Code|Description|
+		// |----|----|
+		// |422.000|数据不存在|
+		// |422.111|数据已存在|
+		// |422.999|参数有误|
+		Code *ErrCode `json:"code,omitempty"`
 
 		// 错误字段
 		Field *string `json:"field,omitempty"`
 
 		// 错误描述
 		Msg *string `json:"msg,omitempty"`
-		// Embedded struct due to allOf(#/components/schemas/Err)
-		Err `yaml:",inline"`
 	}
 }
 
@@ -1737,26 +2286,38 @@ type PatchRoutesIdResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *RouteInfoResponse
 	JSON404      *struct {
-		// Embedded fields due to inline allOf schema
+
+		// 错误码
+		//
+		// |Code|Description|
+		// |----|----|
+		// |422.000|数据不存在|
+		// |422.111|数据已存在|
+		// |422.999|参数有误|
+		Code *ErrCode `json:"code,omitempty"`
 
 		// 错误字段
 		Field *string `json:"field,omitempty"`
 
 		// 错误描述
 		Msg *string `json:"msg,omitempty"`
-		// Embedded struct due to allOf(#/components/schemas/Err)
-		Err `yaml:",inline"`
 	}
 	JSON422 *struct {
-		// Embedded fields due to inline allOf schema
+
+		// 错误码
+		//
+		// |Code|Description|
+		// |----|----|
+		// |422.000|数据不存在|
+		// |422.111|数据已存在|
+		// |422.999|参数有误|
+		Code *ErrCode `json:"code,omitempty"`
 
 		// 错误字段
 		Field *string `json:"field,omitempty"`
 
 		// 错误描述
 		Msg *string `json:"msg,omitempty"`
-		// Embedded struct due to allOf(#/components/schemas/Err)
-		Err `yaml:",inline"`
 	}
 }
 
@@ -1774,6 +2335,67 @@ func (r PatchRoutesIdResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// GetGroupsWithBodyWithResponse request with arbitrary body returning *GetGroupsResponse
+func (c *ClientWithResponses) GetGroupsWithBodyWithResponse(ctx context.Context, params *GetGroupsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetGroupsResponse, error) {
+	rsp, err := c.GetGroupsWithBody(ctx, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetGroupsResponse(rsp)
+}
+
+// PostGroupsWithBodyWithResponse request with arbitrary body returning *PostGroupsResponse
+func (c *ClientWithResponses) PostGroupsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostGroupsResponse, error) {
+	rsp, err := c.PostGroupsWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostGroupsResponse(rsp)
+}
+
+func (c *ClientWithResponses) PostGroupsWithResponse(ctx context.Context, body PostGroupsJSONRequestBody, reqEditors ...RequestEditorFn) (*PostGroupsResponse, error) {
+	rsp, err := c.PostGroups(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostGroupsResponse(rsp)
+}
+
+// DeleteGroupsIdWithResponse request returning *DeleteGroupsIdResponse
+func (c *ClientWithResponses) DeleteGroupsIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeleteGroupsIdResponse, error) {
+	rsp, err := c.DeleteGroupsId(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteGroupsIdResponse(rsp)
+}
+
+// GetGroupsIdWithBodyWithResponse request with arbitrary body returning *GetGroupsIdResponse
+func (c *ClientWithResponses) GetGroupsIdWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetGroupsIdResponse, error) {
+	rsp, err := c.GetGroupsIdWithBody(ctx, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetGroupsIdResponse(rsp)
+}
+
+// PatchGroupsIdWithBodyWithResponse request with arbitrary body returning *PatchGroupsIdResponse
+func (c *ClientWithResponses) PatchGroupsIdWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchGroupsIdResponse, error) {
+	rsp, err := c.PatchGroupsIdWithBody(ctx, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePatchGroupsIdResponse(rsp)
+}
+
+func (c *ClientWithResponses) PatchGroupsIdWithResponse(ctx context.Context, id string, body PatchGroupsIdJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchGroupsIdResponse, error) {
+	rsp, err := c.PatchGroupsId(ctx, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePatchGroupsIdResponse(rsp)
 }
 
 // GetNodesWithBodyWithResponse request with arbitrary body returning *GetNodesResponse
@@ -1959,6 +2581,129 @@ func (c *ClientWithResponses) PatchRoutesIdWithResponse(ctx context.Context, id 
 	return ParsePatchRoutesIdResponse(rsp)
 }
 
+// ParseGetGroupsResponse parses an HTTP response from a GetGroupsWithResponse call
+func ParseGetGroupsResponse(rsp *http.Response) (*GetGroupsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetGroupsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest GroupListResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePostGroupsResponse parses an HTTP response from a PostGroupsWithResponse call
+func ParsePostGroupsResponse(rsp *http.Response) (*PostGroupsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostGroupsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest GroupInfoResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteGroupsIdResponse parses an HTTP response from a DeleteGroupsIdWithResponse call
+func ParseDeleteGroupsIdResponse(rsp *http.Response) (*DeleteGroupsIdResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteGroupsIdResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	}
+
+	return response, nil
+}
+
+// ParseGetGroupsIdResponse parses an HTTP response from a GetGroupsIdWithResponse call
+func ParseGetGroupsIdResponse(rsp *http.Response) (*GetGroupsIdResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetGroupsIdResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest GroupInfoResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePatchGroupsIdResponse parses an HTTP response from a PatchGroupsIdWithResponse call
+func ParsePatchGroupsIdResponse(rsp *http.Response) (*PatchGroupsIdResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PatchGroupsIdResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest GroupInfoResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetNodesResponse parses an HTTP response from a GetNodesWithResponse call
 func ParseGetNodesResponse(rsp *http.Response) (*GetNodesResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -1999,12 +2744,12 @@ func ParsePostNodesResponse(rsp *http.Response) (*PostNodesResponse, error) {
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
 		var dest NodeInfoResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
-		response.JSON200 = &dest
+		response.JSON201 = &dest
 
 	}
 
@@ -2027,15 +2772,21 @@ func ParseDeleteNodesIdResponse(rsp *http.Response) (*DeleteNodesIdResponse, err
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
 		var dest struct {
-			// Embedded fields due to inline allOf schema
+
+			// 错误码
+			//
+			// |Code|Description|
+			// |----|----|
+			// |422.000|数据不存在|
+			// |422.111|数据已存在|
+			// |422.999|参数有误|
+			Code *ErrCode `json:"code,omitempty"`
 
 			// 错误字段
 			Field *string `json:"field,omitempty"`
 
 			// 错误描述
 			Msg *string `json:"msg,omitempty"`
-			// Embedded struct due to allOf(#/components/schemas/Err)
-			Err `yaml:",inline"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -2139,12 +2890,12 @@ func ParsePostPermissionsResponse(rsp *http.Response) (*PostPermissionsResponse,
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
 		var dest PermissionInfoResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
-		response.JSON200 = &dest
+		response.JSON201 = &dest
 
 	}
 
@@ -2271,15 +3022,21 @@ func ParsePostRoutesResponse(rsp *http.Response) (*PostRoutesResponse, error) {
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
 		var dest struct {
-			// Embedded fields due to inline allOf schema
+
+			// 错误码
+			//
+			// |Code|Description|
+			// |----|----|
+			// |422.000|数据不存在|
+			// |422.111|数据已存在|
+			// |422.999|参数有误|
+			Code *ErrCode `json:"code,omitempty"`
 
 			// 错误字段
 			Field *string `json:"field,omitempty"`
 
 			// 错误描述
 			Msg *string `json:"msg,omitempty"`
-			// Embedded struct due to allOf(#/components/schemas/Err)
-			Err `yaml:",inline"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -2307,15 +3064,21 @@ func ParseDeleteRoutesIdResponse(rsp *http.Response) (*DeleteRoutesIdResponse, e
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest struct {
-			// Embedded fields due to inline allOf schema
+
+			// 错误码
+			//
+			// |Code|Description|
+			// |----|----|
+			// |422.000|数据不存在|
+			// |422.111|数据已存在|
+			// |422.999|参数有误|
+			Code *ErrCode `json:"code,omitempty"`
 
 			// 错误字段
 			Field *string `json:"field,omitempty"`
 
 			// 错误描述
 			Msg *string `json:"msg,omitempty"`
-			// Embedded struct due to allOf(#/components/schemas/Err)
-			Err `yaml:",inline"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -2350,15 +3113,21 @@ func ParseGetRoutesIdResponse(rsp *http.Response) (*GetRoutesIdResponse, error) 
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest struct {
-			// Embedded fields due to inline allOf schema
+
+			// 错误码
+			//
+			// |Code|Description|
+			// |----|----|
+			// |422.000|数据不存在|
+			// |422.111|数据已存在|
+			// |422.999|参数有误|
+			Code *ErrCode `json:"code,omitempty"`
 
 			// 错误字段
 			Field *string `json:"field,omitempty"`
 
 			// 错误描述
 			Msg *string `json:"msg,omitempty"`
-			// Embedded struct due to allOf(#/components/schemas/Err)
-			Err `yaml:",inline"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -2393,15 +3162,21 @@ func ParsePatchRoutesIdResponse(rsp *http.Response) (*PatchRoutesIdResponse, err
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest struct {
-			// Embedded fields due to inline allOf schema
+
+			// 错误码
+			//
+			// |Code|Description|
+			// |----|----|
+			// |422.000|数据不存在|
+			// |422.111|数据已存在|
+			// |422.999|参数有误|
+			Code *ErrCode `json:"code,omitempty"`
 
 			// 错误字段
 			Field *string `json:"field,omitempty"`
 
 			// 错误描述
 			Msg *string `json:"msg,omitempty"`
-			// Embedded struct due to allOf(#/components/schemas/Err)
-			Err `yaml:",inline"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -2410,15 +3185,21 @@ func ParsePatchRoutesIdResponse(rsp *http.Response) (*PatchRoutesIdResponse, err
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
 		var dest struct {
-			// Embedded fields due to inline allOf schema
+
+			// 错误码
+			//
+			// |Code|Description|
+			// |----|----|
+			// |422.000|数据不存在|
+			// |422.111|数据已存在|
+			// |422.999|参数有误|
+			Code *ErrCode `json:"code,omitempty"`
 
 			// 错误字段
 			Field *string `json:"field,omitempty"`
 
 			// 错误描述
 			Msg *string `json:"msg,omitempty"`
-			// Embedded struct due to allOf(#/components/schemas/Err)
-			Err `yaml:",inline"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err

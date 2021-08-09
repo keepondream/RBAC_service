@@ -25,24 +25,14 @@ func NewNode(r *Repo) *Node {
 
 func (r *Node) Ent2Port(model *ent.Node) *ports.Node {
 	resp := ports.Node{
-		Id:       cast.ToString(model.ID),
-		Name:     model.Name,
-		ParentId: cast.ToString(model.ParentID),
-		ItemData: ports.ItemData{
-			Data: model.Data,
-		},
-		ItemTenant: ports.ItemTenant{
-			Tenant: model.Tenant,
-		},
-		ItemType: ports.ItemType{
-			Type: model.Type,
-		},
-		ItemCreatedat: ports.ItemCreatedat{
-			CreatedAt: model.CreatedAt,
-		},
-		ItemUpdatedat: ports.ItemUpdatedat{
-			UpdatedAt: model.UpdatedAt,
-		},
+		Id:        cast.ToString(model.ID),
+		Name:      model.Name,
+		ParentId:  cast.ToString(model.ParentID),
+		Data:      model.Data,
+		Tenant:    ports.ItemTenant(model.Tenant),
+		Type:      ports.ItemType(model.Type),
+		CreatedAt: model.CreatedAt,
+		UpdatedAt: model.UpdatedAt,
 	}
 
 	return &resp
@@ -77,15 +67,17 @@ func (r *Node) Create(ctx context.Context, params ports.PostNodesJSONBody) (*por
 	for _, v := range params.PermissionIds {
 		permissionIds = append(permissionIds, cast.ToInt(v))
 	}
-	permissions := r.EntClient.Permission.Query().Where(permission.Tenant(params.Tenant)).Where(permission.IDIn(permissionIds...)).AllX(ctx)
+	permissions := r.EntClient.Permission.Query().Where(permission.Tenant(string(params.Tenant))).Where(permission.IDIn(permissionIds...)).AllX(ctx)
 	modelQuery := r.EntClient.Node.Create().
 		SetName(params.Name).
-		SetTenant(params.Tenant).
-		SetData(&params.Data).
-		SetType(params.Type).
+		SetTenant(string(params.Tenant)).
+		SetType(string(params.Type)).
 		AddPermissions(permissions...)
+	if params.Data != nil {
+		modelQuery.SetData((*interface{})(params.Data))
+	}
 	if params.ParentId != nil {
-		parent, err := r.EntClient.Node.Query().Where(node.Tenant(params.Tenant)).Where(node.ID(cast.ToInt(params.ParentId))).First(ctx)
+		parent, err := r.EntClient.Node.Query().Where(node.Tenant(string(params.Tenant))).Where(node.ID(cast.ToInt(params.ParentId))).First(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -238,13 +230,17 @@ func (r *Node) List(ctx context.Context, params ports.GetNodesParams) (*ports.No
 }
 
 func (r *Node) Update(ctx context.Context, params ports.PatchNodesIdJSONBody, id string) (*ports.NodeInfoResponse, error) {
-	modelQuery := r.EntClient.Node.UpdateOneID(cast.ToInt(id))
+	model, err := r.EntClient.Node.Get(ctx, cast.ToInt(id))
+	if err != nil {
+		return nil, err
+	}
+	modelQuery := model.Update()
 
 	if params.Name != nil {
 		modelQuery.SetName(*params.Name)
 	}
 	if params.Data != nil {
-		modelQuery.SetData(&params.Data.Data)
+		modelQuery.SetData((*interface{})(params.Data))
 	}
 	if params.ParentId != nil {
 		if *params.ParentId == "" {
@@ -258,18 +254,21 @@ func (r *Node) Update(ctx context.Context, params ports.PatchNodesIdJSONBody, id
 		}
 	}
 	if params.Tenant != nil {
-		modelQuery.SetTenant(params.Tenant.Tenant)
+		modelQuery.SetTenant(string(*params.Tenant))
 	}
 	if params.PermissionIds != nil {
 		permissionIds := []int{}
 		for _, v := range *params.PermissionIds {
 			permissionIds = append(permissionIds, cast.ToInt(v))
 		}
-		permissions := r.EntClient.Permission.Query().Where(permission.Tenant(params.Tenant.Tenant)).
+		permissions := r.EntClient.Permission.Query().Where(permission.Tenant(model.Tenant)).
 			Where(permission.IDIn(permissionIds...)).AllX(ctx)
 		modelQuery.ClearPermissions().AddPermissions(permissions...)
 	}
-	model, err := modelQuery.Save(ctx)
+	if params.Type != nil {
+		modelQuery.SetType(string(*params.Type))
+	}
+	model, err = modelQuery.Save(ctx)
 	if err != nil {
 		return nil, err
 	}

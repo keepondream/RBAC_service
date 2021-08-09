@@ -95,33 +95,32 @@
           "content": {
             "application/json": {
               "schema": {
-                "allOf": [
-                  {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "路由名称"
+                  },
+                  "uri": {
+                    "type": "string",
+                    "description": "路由路径,拦截URL,path 例如: /users/:id"
+                  },
+                  "tenant": {
                     "$ref": "#/components/schemas/ItemTenant"
                   },
-                  {
-                    "type": "object",
-                    "properties": {
-                      "name": {
-                        "type": "string",
-                        "description": "路由名称"
-                      },
-                      "uri": {
-                        "type": "string",
-                        "description": "路由路径,拦截URL,path 例如: /users/:id"
-                      }
-                    },
-                    "required": [
-                      "name",
-                      "uri"
-                    ]
-                  },
-                  {
-                    "$ref": "#/components/schemas/ItemMethod"
-                  },
-                  {
+                  "data": {
                     "$ref": "#/components/schemas/ItemData"
+                  },
+                  "method": {
+                    "$ref": "#/components/schemas/ItemMethod"
                   }
+                },
+                "required": [
+                  "name",
+                  "uri",
+                  "tenant",
+                  "data",
+                  "method"
                 ]
               }
             }
@@ -307,8 +306,8 @@
         "summary": "创建权限",
         "operationId": "post-permissions",
         "responses": {
-          "200": {
-            "description": "OK",
+          "201": {
+            "description": "Created",
             "content": {
               "application/json": {
                 "schema": {
@@ -326,33 +325,31 @@
           "content": {
             "application/json": {
               "schema": {
-                "allOf": [
-                  {
-                    "type": "object",
-                    "properties": {
-                      "name": {
-                        "type": "string",
-                        "description": "权限名称"
-                      },
-                      "route_ids": {
-                        "type": "array",
-                        "description": "权限对应的路由IDS",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    },
-                    "required": [
-                      "name",
-                      "route_ids"
-                    ]
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "权限名称"
                   },
-                  {
+                  "route_ids": {
+                    "type": "array",
+                    "description": "权限对应的路由IDS",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "tenant": {
                     "$ref": "#/components/schemas/ItemTenant"
                   },
-                  {
+                  "data": {
                     "$ref": "#/components/schemas/ItemData"
                   }
+                },
+                "required": [
+                  "name",
+                  "route_ids",
+                  "tenant",
+                  "data"
                 ]
               }
             }
@@ -427,30 +424,26 @@
           "content": {
             "application/json": {
               "schema": {
-                "allOf": [
-                  {
-                    "properties": {
-                      "name": {
-                        "type": "string",
-                        "description": "权限名称"
-                      },
-                      "route_ids": {
-                        "type": "array",
-                        "description": "权限绑定的相关路由ID,字段不传则不更改",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "tenant": {
-                        "$ref": "#/components/schemas/ItemTenant"
-                      },
-                      "data": {
-                        "$ref": "#/components/schemas/ItemData"
-                      }
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "权限名称"
+                  },
+                  "route_ids": {
+                    "type": "array",
+                    "description": "权限绑定的相关路由ID,字段不传则不更改",
+                    "items": {
+                      "type": "string"
                     }
+                  },
+                  "tenant": {
+                    "$ref": "#/components/schemas/ItemTenant"
+                  },
+                  "data": {
+                    "$ref": "#/components/schemas/ItemData"
                   }
-                ],
-                "type": "object"
+                }
               }
             }
           }
@@ -529,8 +522,8 @@
         "summary": "创建节点",
         "operationId": "post-nodes",
         "responses": {
-          "200": {
-            "description": "OK",
+          "201": {
+            "description": "Created",
             "content": {
               "application/json": {
                 "schema": {
@@ -548,40 +541,38 @@
           "content": {
             "application/json": {
               "schema": {
-                "allOf": [
-                  {
-                    "type": "object",
-                    "properties": {
-                      "name": {
-                        "type": "string",
-                        "description": "名称"
-                      },
-                      "parent_id": {
-                        "type": "string",
-                        "description": "父级ID,非必填选项"
-                      },
-                      "permission_ids": {
-                        "type": "array",
-                        "description": "权限IDS",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    },
-                    "required": [
-                      "name",
-                      "permission_ids"
-                    ]
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "名称"
                   },
-                  {
+                  "parent_id": {
+                    "type": "string",
+                    "description": "父级ID,非必填选项"
+                  },
+                  "permission_ids": {
+                    "type": "array",
+                    "description": "权限IDS",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "tenant": {
                     "$ref": "#/components/schemas/ItemTenant"
                   },
-                  {
+                  "data": {
                     "$ref": "#/components/schemas/ItemData"
                   },
-                  {
+                  "type": {
                     "$ref": "#/components/schemas/ItemType"
                   }
+                },
+                "required": [
+                  "name",
+                  "permission_ids",
+                  "tenant",
+                  "type"
                 ]
               }
             }
@@ -673,6 +664,9 @@
                     "items": {
                       "type": "string"
                     }
+                  },
+                  "type": {
+                    "$ref": "#/components/schemas/ItemType"
                   }
                 }
               }
@@ -697,7 +691,229 @@
             "description": "Not Found"
           }
         },
-        "description": "删除节点"
+        "description": "删除节点",
+        "tags": [
+          "node"
+        ]
+      }
+    },
+    "/groups": {
+      "get": {
+        "summary": "分组列表",
+        "tags": [
+          "group"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupListResponse"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-groups",
+        "description": "分组列表",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          },
+          {
+            "$ref": "#/components/parameters/order"
+          },
+          {
+            "$ref": "#/components/parameters/query"
+          },
+          {
+            "$ref": "#/components/parameters/sort"
+          },
+          {
+            "$ref": "#/components/parameters/start_time"
+          },
+          {
+            "$ref": "#/components/parameters/end_time"
+          }
+        ]
+      },
+      "post": {
+        "summary": "创建分组",
+        "operationId": "post-groups",
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupInfoResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "group"
+        ],
+        "description": "创建分组",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "名称"
+                  },
+                  "tenant": {
+                    "$ref": "#/components/schemas/ItemTenant"
+                  },
+                  "type": {
+                    "$ref": "#/components/schemas/ItemType"
+                  },
+                  "data": {
+                    "$ref": "#/components/schemas/ItemData"
+                  },
+                  "node_ids": {
+                    "type": "array",
+                    "description": "节点IDs",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "name",
+                  "tenant",
+                  "type",
+                  "node_ids"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/groups/{id}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "分组ID"
+        }
+      ],
+      "get": {
+        "summary": "获取分组详情",
+        "tags": [
+          "group"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupInfoResponse"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-groups-id",
+        "description": "获取分组详情",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "更新分组信息",
+        "operationId": "patch-groups-id",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupInfoResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "group"
+        ],
+        "description": "更新分组信息",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "名称"
+                  },
+                  "tenant": {
+                    "$ref": "#/components/schemas/ItemTenant"
+                  },
+                  "type": {
+                    "$ref": "#/components/schemas/ItemType"
+                  },
+                  "data": {
+                    "$ref": "#/components/schemas/ItemData"
+                  },
+                  "node_ids": {
+                    "type": "array",
+                    "description": "节点IDs",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "删除分组",
+        "operationId": "delete-groups-id",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "group"
+        ],
+        "description": "删除分组"
       }
     }
   },
@@ -728,44 +944,49 @@
       "Route": {
         "title": "Route",
         "examples": [],
-        "allOf": [
-          {
-            "type": "object",
-            "properties": {
-              "id": {
-                "description": "路由ID",
-                "type": "string"
-              },
-              "name": {
-                "type": "string",
-                "description": "路由名称"
-              },
-              "uri": {
-                "type": "string",
-                "description": "拦截URL"
-              }
-            },
-            "required": [
-              "id",
-              "name",
-              "uri"
-            ]
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "路由ID",
+            "type": "string"
           },
-          {
+          "name": {
+            "type": "string",
+            "description": "路由名称"
+          },
+          "uri": {
+            "type": "string",
+            "description": "拦截URL"
+          },
+          "method": {
             "$ref": "#/components/schemas/ItemMethod"
           },
-          {
+          "tenant": {
             "$ref": "#/components/schemas/ItemTenant"
           },
-          {
+          "data": {
             "$ref": "#/components/schemas/ItemData"
           },
-          {
-            "$ref": "#/components/schemas/ItemCreatedat"
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "零时区时间格式: YYYY-MM-DDTHH:MM:SSZ"
           },
-          {
-            "$ref": "#/components/schemas/ItemUpdatedat"
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "零时区时间格式: YYYY-MM-DDTHH:MM:SSZ"
           }
+        },
+        "required": [
+          "id",
+          "name",
+          "uri",
+          "method",
+          "tenant",
+          "data",
+          "created_at",
+          "updated_at"
         ]
       },
       "PermissionListResponse": {
@@ -808,76 +1029,85 @@
       },
       "Permission": {
         "title": "Permission",
-        "allOf": [
-          {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "string"
-              },
-              "name": {
-                "type": "string",
-                "description": "权限名称"
-              }
-            },
-            "required": [
-              "id",
-              "name"
-            ]
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
           },
-          {
+          "name": {
+            "type": "string",
+            "description": "权限名称"
+          },
+          "tenant": {
             "$ref": "#/components/schemas/ItemTenant"
           },
-          {
+          "data": {
             "$ref": "#/components/schemas/ItemData"
           },
-          {
-            "$ref": "#/components/schemas/ItemCreatedat"
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "零时区时间格式: YYYY-MM-DDTHH:MM:SSZ"
           },
-          {
-            "$ref": "#/components/schemas/ItemUpdatedat"
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "零时区时间格式: YYYY-MM-DDTHH:MM:SSZ"
           }
+        },
+        "required": [
+          "id",
+          "name",
+          "tenant",
+          "data",
+          "created_at",
+          "updated_at"
         ]
       },
       "Node": {
         "title": "Node",
-        "allOf": [
-          {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "string"
-              },
-              "name": {
-                "type": "string",
-                "description": "节点名称"
-              },
-              "parent_id": {
-                "type": "string",
-                "description": "父节点ID"
-              }
-            },
-            "required": [
-              "id",
-              "name",
-              "parent_id"
-            ]
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
           },
-          {
+          "name": {
+            "type": "string",
+            "description": "节点名称"
+          },
+          "parent_id": {
+            "type": "string",
+            "description": "父节点ID"
+          },
+          "data": {
             "$ref": "#/components/schemas/ItemData"
           },
-          {
+          "tenant": {
             "$ref": "#/components/schemas/ItemTenant"
           },
-          {
+          "type": {
             "$ref": "#/components/schemas/ItemType"
           },
-          {
-            "$ref": "#/components/schemas/ItemCreatedat"
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "零时区时间格式: YYYY-MM-DDTHH:MM:SSZ"
           },
-          {
-            "$ref": "#/components/schemas/ItemUpdatedat"
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "零时区时间格式: YYYY-MM-DDTHH:MM:SSZ"
           }
+        },
+        "required": [
+          "id",
+          "name",
+          "parent_id",
+          "data",
+          "tenant",
+          "type",
+          "created_at",
+          "updated_at"
         ]
       },
       "NodeListResponse": {
@@ -935,7 +1165,6 @@
         "title": "Group",
         "allOf": [
           {
-            "type": "object",
             "properties": {
               "id": {
                 "type": "string"
@@ -943,29 +1172,39 @@
               "name": {
                 "type": "string",
                 "description": "分组名称"
+              },
+              "tenant": {
+                "$ref": "#/components/schemas/ItemTenant"
+              },
+              "type": {
+                "$ref": "#/components/schemas/ItemType"
+              },
+              "data": {
+                "$ref": "#/components/schemas/ItemData"
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "零时区时间格式: YYYY-MM-DDTHH:MM:SSZ"
+              },
+              "updated_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "零时区时间格式: YYYY-MM-DDTHH:MM:SSZ"
               }
             },
             "required": [
               "id",
-              "name"
+              "name",
+              "tenant",
+              "type",
+              "data",
+              "created_at",
+              "updated_at"
             ]
-          },
-          {
-            "$ref": "#/components/schemas/ItemTenant"
-          },
-          {
-            "$ref": "#/components/schemas/ItemType"
-          },
-          {
-            "$ref": "#/components/schemas/ItemData"
-          },
-          {
-            "$ref": "#/components/schemas/ItemCreatedat"
-          },
-          {
-            "$ref": "#/components/schemas/ItemUpdatedat"
           }
-        ]
+        ],
+        "type": "object"
       },
       "GroupListResponse": {
         "title": "GroupListResponse",
@@ -980,7 +1219,11 @@
               "$ref": "#/components/schemas/GroupInfoResponse"
             }
           }
-        }
+        },
+        "required": [
+          "total",
+          "items"
+        ]
       },
       "GroupInfoResponse": {
         "title": "GroupInfoResponse",
@@ -1003,127 +1246,61 @@
       },
       "ItemMethod": {
         "title": "ItemMethod",
-        "type": "object",
-        "properties": {
-          "method": {
-            "type": "string",
-            "description": "URL请求方式 GET,HEAD,POST,PUT,PATCH,DELETE,CONNECT,OPTIONS,TRACE",
-            "enum": [
-              "GET",
-              "HEAD",
-              "POST",
-              "PUT",
-              "PATCH",
-              "DELETE",
-              "CONNECT",
-              "OPTIONS",
-              "TRACE"
-            ],
-            "example": "GET",
-            "default": "GET"
-          }
-        },
-        "required": [
-          "method"
-        ]
+        "type": "string",
+        "description": "URL请求方式 GET,HEAD,POST,PUT,PATCH,DELETE,CONNECT,OPTIONS,TRACE",
+        "enum": [
+          "GET",
+          "HEAD",
+          "POST",
+          "PUT",
+          "PATCH",
+          "DELETE",
+          "CONNECT",
+          "OPTIONS",
+          "TRACE"
+        ],
+        "example": "GET",
+        "default": "GET"
       },
       "ItemTenant": {
         "title": "ItemTenant",
-        "type": "object",
-        "properties": {
-          "tenant": {
-            "type": "string",
-            "description": "域标识,可自定义用于区分哪个平台使用",
-            "example": "domain1"
-          }
-        },
-        "required": [
-          "tenant"
-        ]
+        "type": "string",
+        "description": "域标识,可自定义用于区分哪个平台使用",
+        "example": "domain1"
       },
       "ItemData": {
         "title": "ItemData",
-        "type": "object",
         "examples": [],
-        "properties": {
-          "data": {
-            "description": "自定义json数据",
-            "oneOf": [
-              {
-                "type": "object"
-              },
-              {
-                "type": "array",
-                "items": {
-                  "type": "object"
-                }
-              }
-            ]
+        "oneOf": [
+          {
+            "type": "object",
+            "description": "自定义json对象"
+          },
+          {
+            "type": "array",
+            "description": "自定义数组json",
+            "items": {
+              "type": "object"
+            }
           }
-        },
-        "required": [
-          "data"
-        ]
-      },
-      "ItemCreatedat": {
-        "title": "ItemCreatedat",
-        "type": "object",
-        "properties": {
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "example": "2021-01-01T16:00:00Z",
-            "description": "创建时间 零时区时间格式: YYYY-MM-DDTHH:MM:SSZ"
-          }
-        },
-        "required": [
-          "created_at"
-        ]
-      },
-      "ItemUpdatedat": {
-        "title": "ItemUpdatedat",
-        "type": "object",
-        "properties": {
-          "updated_at": {
-            "type": "string",
-            "description": "更新时间 零时区时间格式: YYYY-MM-DDTHH:MM:SSZ",
-            "format": "date-time",
-            "example": "2021-01-02T00:00:00Z"
-          }
-        },
-        "required": [
-          "updated_at"
-        ]
+        ],
+        "description": "自定义json对象或者数组json"
       },
       "ItemType": {
         "title": "ItemType",
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "description": "节点或者分组的类型可自定义 例如 role:角色, menu:菜单, element:页面元素 ...等等",
-            "example": "role"
-          }
-        },
-        "required": [
-          "type"
-        ]
+        "type": "string",
+        "description": "节点或者分组的类型可自定义 例如 role:角色, menu:菜单, element:页面元素 ...等等",
+        "example": "role"
       },
-      "Err": {
-        "title": "",
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string",
-            "description": "错误码\n\n|Code|Description|\n|----|----|\n|422.000|数据不存在|\n|422.111|数据已存在|\n|422.999|参数有误|",
-            "enum": [
-              "422.000",
-              "422.111",
-              "422.999"
-            ],
-            "example": "422.000"
-          }
-        }
+      "ErrCode": {
+        "type": "string",
+        "description": "错误码\n\n|Code|Description|\n|----|----|\n|422.000|数据不存在|\n|422.111|数据已存在|\n|422.999|参数有误|",
+        "enum": [
+          "422.000",
+          "422.111",
+          "422.999"
+        ],
+        "example": "422.000"
       }
     },
     "parameters": {
@@ -1212,24 +1389,20 @@
         "content": {
           "application/json": {
             "schema": {
-              "allOf": [
-                {
-                  "type": "object",
-                  "properties": {
-                    "field": {
-                      "type": "string",
-                      "description": "错误字段"
-                    },
-                    "msg": {
-                      "type": "string",
-                      "description": "错误描述"
-                    }
-                  }
+              "type": "object",
+              "properties": {
+                "code": {
+                  "$ref": "#/components/schemas/ErrCode"
                 },
-                {
-                  "$ref": "#/components/schemas/Err"
+                "field": {
+                  "type": "string",
+                  "description": "错误字段"
+                },
+                "msg": {
+                  "type": "string",
+                  "description": "错误描述"
                 }
-              ]
+              }
             },
             "examples": {
               "错误示例": {
@@ -1246,6 +1419,9 @@
     }
   },
   "tags": [
+    {
+      "name": "group"
+    },
     {
       "name": "node"
     },

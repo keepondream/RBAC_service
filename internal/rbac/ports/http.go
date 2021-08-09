@@ -12,6 +12,7 @@ type HttpServer struct {
 	RouteService      Router
 	PermissionService Permissioner
 	NodeService       Noder
+	GroupService      Grouper
 }
 
 // NewHttpServer 注入依赖服务
@@ -19,12 +20,14 @@ func NewHttpServer(
 	routeService Router,
 	permissionService Permissioner,
 	nodeService Noder,
+	groupService Grouper,
 ) *HttpServer {
 	return &HttpServer{
 		Validate:          utils.NewValidate(),
 		RouteService:      routeService,
 		PermissionService: permissionService,
 		NodeService:       nodeService,
+		GroupService:      groupService,
 	}
 }
 

@@ -24,24 +24,14 @@ func NewRoute(r *Repo) *Route {
 
 func (r *Route) Ent2Port(model *ent.Route) *ports.Route {
 	return &ports.Route{
-		Id:   cast.ToString(model.ID),
-		Name: model.Name,
-		Uri:  model.URI,
-		ItemMethod: ports.ItemMethod{
-			Method: ports.ItemMethodMethod(model.Method),
-		},
-		ItemTenant: ports.ItemTenant{
-			Tenant: model.Tenant,
-		},
-		ItemData: ports.ItemData{
-			Data: model.Data,
-		},
-		ItemCreatedat: ports.ItemCreatedat{
-			CreatedAt: model.CreatedAt,
-		},
-		ItemUpdatedat: ports.ItemUpdatedat{
-			UpdatedAt: model.UpdatedAt,
-		},
+		Id:        cast.ToString(model.ID),
+		Name:      model.Name,
+		Uri:       model.URI,
+		Method:    ports.ItemMethod(model.Method),
+		Tenant:    ports.ItemTenant(model.Tenant),
+		Data:      model.Data,
+		CreatedAt: model.CreatedAt,
+		UpdatedAt: model.UpdatedAt,
 	}
 }
 
@@ -142,16 +132,16 @@ func (r *Route) DeleteById(ctx context.Context, id string) error {
 func (r *Route) Update(ctx context.Context, params ports.PatchRoutesIdJSONBody, id string) (*ports.RouteInfoResponse, error) {
 	modelQuery := r.EntClient.Route.UpdateOneID(cast.ToInt(id))
 	if params.Data != nil {
-		modelQuery.SetData(&params.Data.Data)
+		modelQuery.SetData((*interface{})(params.Data))
 	}
 	if params.Method != nil {
-		modelQuery.SetMethod(route.Method(params.Method.Method))
+		modelQuery.SetMethod(route.Method(*params.Method))
 	}
 	if params.Name != nil {
 		modelQuery.SetName(*params.Name)
 	}
 	if params.Tenant != nil {
-		modelQuery.SetTenant(params.Tenant.Tenant)
+		modelQuery.SetTenant(string(*params.Tenant))
 	}
 	if params.Uri != nil {
 		modelQuery.SetURI(*params.Uri)
@@ -168,11 +158,11 @@ func (r *Route) Update(ctx context.Context, params ports.PatchRoutesIdJSONBody, 
 
 func (r *Route) Create(ctx context.Context, params ports.PostRoutesJSONBody) (*ports.RouteInfoResponse, error) {
 	model, err := r.EntClient.Route.Create().
-		SetTenant(params.Tenant).
+		SetTenant(string(params.Tenant)).
 		SetName(params.Name).
 		SetURI(params.Uri).
 		SetMethod(route.Method(params.Method)).
-		SetData(&params.Data).Save(ctx)
+		SetData((*interface{})(&params.Data)).Save(ctx)
 	if err != nil {
 		return nil, err
 	}

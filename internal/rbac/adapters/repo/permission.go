@@ -25,20 +25,12 @@ func NewPermission(r *Repo) *Permission {
 
 func (r *Permission) Ent2Port(model *ent.Permission) *ports.Permission {
 	resp := ports.Permission{
-		Id:   cast.ToString(model.ID),
-		Name: model.Name,
-		ItemTenant: ports.ItemTenant{
-			Tenant: model.Tenant,
-		},
-		ItemData: ports.ItemData{
-			Data: model.Data,
-		},
-		ItemCreatedat: ports.ItemCreatedat{
-			CreatedAt: model.CreatedAt,
-		},
-		ItemUpdatedat: ports.ItemUpdatedat{
-			UpdatedAt: model.UpdatedAt,
-		},
+		Id:        cast.ToString(model.ID),
+		Name:      model.Name,
+		Tenant:    ports.ItemTenant(model.Tenant),
+		Data:      model.Data,
+		CreatedAt: model.CreatedAt,
+		UpdatedAt: model.UpdatedAt,
 	}
 
 	return &resp
@@ -61,11 +53,11 @@ func (r *Permission) Create(ctx context.Context, params ports.PostPermissionsJSO
 	for _, v := range params.RouteIds {
 		routeIds = append(routeIds, cast.ToInt(v))
 	}
-	routes := r.EntClient.Route.Query().Where(route.Tenant(params.Tenant)).Where(route.IDIn(routeIds...)).AllX(ctx)
+	routes := r.EntClient.Route.Query().Where(route.Tenant(string(params.Tenant))).Where(route.IDIn(routeIds...)).AllX(ctx)
 	model, err := r.EntClient.Permission.Create().
 		SetName(params.Name).
-		SetTenant(params.Tenant).
-		SetData(&params.Data).
+		SetTenant(string(params.Tenant)).
+		SetData((*interface{})(&params.Data)).
 		AddRoutes(routes...).Save(ctx)
 	if err != nil {
 		return nil, err
@@ -199,17 +191,17 @@ func (r *Permission) Update(ctx context.Context, params ports.PatchPermissionsId
 		modelQuery.SetName(*params.Name)
 	}
 	if params.Data != nil {
-		modelQuery.SetData(&params.Data.Data)
+		modelQuery.SetData((*interface{})(params.Data))
 	}
 	if params.Tenant != nil {
-		modelQuery.SetTenant(params.Tenant.Tenant)
+		modelQuery.SetTenant(string(*params.Tenant))
 	}
 	if params.RouteIds != nil {
 		routeIds := []int{}
 		for _, v := range *params.RouteIds {
 			routeIds = append(routeIds, cast.ToInt(v))
 		}
-		routes := r.EntClient.Route.Query().Where(route.Tenant(params.Tenant.Tenant)).Where(route.IDIn(routeIds...)).AllX(ctx)
+		routes := r.EntClient.Route.Query().Where(route.Tenant(string(*params.Tenant))).Where(route.IDIn(routeIds...)).AllX(ctx)
 		modelQuery.ClearRoutes().AddRoutes(routes...)
 	}
 

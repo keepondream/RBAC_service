@@ -39,7 +39,7 @@ func (h *HttpServer) PostPermissions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.PermissionService.IsUnique(r.Context(), params.Tenant, params.Name)
+	err = h.PermissionService.IsUnique(r.Context(), string(params.Tenant), params.Name)
 	if err != nil {
 		utils.Render(w, r, 422, utils.WithCode(string(ErrCodeN422111)), utils.WithField("tenant,name"), utils.WithError(err))
 		return

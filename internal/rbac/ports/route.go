@@ -39,7 +39,7 @@ func (h *HttpServer) PostRoutes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.RouteService.IsUnique(r.Context(), params.Tenant, params.Uri, string(params.Method))
+	err = h.RouteService.IsUnique(r.Context(), string(params.Tenant), params.Uri, string(params.Method))
 	if err != nil {
 		utils.Render(w, r, 422, utils.WithCode(string(ErrCodeN422111)), utils.WithField("tenant,uri,method"), utils.WithError(err))
 		return

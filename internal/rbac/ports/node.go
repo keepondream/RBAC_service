@@ -39,7 +39,7 @@ func (h *HttpServer) PostNodes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.NodeService.IsUnique(r.Context(), params.Tenant, params.Name, params.Type)
+	err = h.NodeService.IsUnique(r.Context(), string(params.Tenant), params.Name, string(params.Type))
 	if err != nil {
 		utils.Render(w, r, 422, utils.WithCode(string(ErrCodeN422111)), utils.WithField("tenant,name,type"), utils.WithError(err))
 		return
@@ -64,7 +64,7 @@ func (h *HttpServer) PostNodes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.Render(w, r, 200, utils.WithData(res))
+	utils.Render(w, r, 201, utils.WithData(res))
 }
 
 // 删除节点
@@ -116,8 +116,8 @@ func (h *HttpServer) PatchNodesId(w http.ResponseWriter, r *http.Request, id str
 			return
 		}
 
-		if parent.Tenant != params.Tenant.Tenant {
-			utils.Render(w, r, 422, utils.WithCode(string(ErrCodeN422999)), utils.WithField("parent_id"), utils.WithError(fmt.Errorf("parent tenant not equal params.tenant:%s", params.Tenant)))
+		if parent.Tenant != *params.Tenant {
+			utils.Render(w, r, 422, utils.WithCode(string(ErrCodeN422999)), utils.WithField("parent_id"), utils.WithError(fmt.Errorf("parent tenant not equal params.tenant:%s", *params.Tenant)))
 			return
 		}
 	}
