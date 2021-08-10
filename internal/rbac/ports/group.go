@@ -3,6 +3,7 @@ package ports
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/keepondream/RBAC_service/internal/common/utils"
@@ -42,6 +43,19 @@ func (h *HttpServer) PostGroups(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		utils.Render(w, r, 422, utils.WithCode(string(ErrCodeN422111)), utils.WithField("tenant,name,type"), utils.WithError(err))
 		return
+	}
+
+	if params.ParentId != nil && *params.ParentId != "" {
+		parent, err := h.GroupService.GetById(r.Context(), *params.ParentId)
+		if err != nil {
+			utils.Render(w, r, 422, utils.WithCode(string(ErrCodeN422000)), utils.WithField("parent_id"), utils.WithError(err))
+			return
+		}
+
+		if parent.Tenant != params.Tenant {
+			utils.Render(w, r, 422, utils.WithCode(string(ErrCodeN422999)), utils.WithField("parent_id"), utils.WithError(fmt.Errorf("parent tenant not equal params.tenant:%s", params.Tenant)))
+			return
+		}
 	}
 
 	res, err := h.GroupService.Create(r.Context(), PostGroupsJSONBody(params))
@@ -89,11 +103,25 @@ func (h *HttpServer) PatchGroupsId(w http.ResponseWriter, r *http.Request, id st
 		utils.Render(w, r, 400, utils.WithError(err))
 		return
 	}
-	_, err = h.GroupService.GetById(r.Context(), id)
+	groupInfo, err := h.GroupService.GetById(r.Context(), id)
 	if err != nil {
 		utils.Render(w, r, 404, utils.WithError(err))
 		return
 	}
+
+	if params.ParentId != nil && *params.ParentId != "" {
+		parent, err := h.GroupService.GetById(r.Context(), *params.ParentId)
+		if err != nil {
+			utils.Render(w, r, 422, utils.WithCode(string(ErrCodeN422000)), utils.WithField("parent_id"), utils.WithError(err))
+			return
+		}
+
+		if parent.Tenant != groupInfo.Tenant {
+			utils.Render(w, r, 422, utils.WithCode(string(ErrCodeN422999)), utils.WithField("parent_id"), utils.WithError(fmt.Errorf("parent tenant not equal current.tenant:%s", groupInfo.Tenant)))
+			return
+		}
+	}
+
 	res, err := h.GroupService.Update(r.Context(), PatchGroupsIdJSONBody(params), id)
 	if err != nil {
 		utils.Render(w, r, 400, utils.WithError(err))

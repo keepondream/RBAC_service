@@ -53,9 +53,11 @@ type NodeEdges struct {
 	Groups []*Group `json:"groups,omitempty"`
 	// Permissions holds the value of the permissions edge.
 	Permissions []*Permission `json:"permissions,omitempty"`
+	// Users holds the value of the users edge.
+	Users []*User `json:"users,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -97,6 +99,15 @@ func (e NodeEdges) PermissionsOrErr() ([]*Permission, error) {
 		return e.Permissions, nil
 	}
 	return nil, &NotLoadedError{edge: "permissions"}
+}
+
+// UsersOrErr returns the Users value or an error if the edge
+// was not loaded in eager-loading.
+func (e NodeEdges) UsersOrErr() ([]*User, error) {
+	if e.loadedTypes[4] {
+		return e.Users, nil
+	}
+	return nil, &NotLoadedError{edge: "users"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -201,6 +212,11 @@ func (n *Node) QueryGroups() *GroupQuery {
 // QueryPermissions queries the "permissions" edge of the Node entity.
 func (n *Node) QueryPermissions() *PermissionQuery {
 	return (&NodeClient{config: n.config}).QueryPermissions(n)
+}
+
+// QueryUsers queries the "users" edge of the Node entity.
+func (n *Node) QueryUsers() *UserQuery {
+	return (&NodeClient{config: n.config}).QueryUsers(n)
 }
 
 // Update returns a builder for updating this Node.

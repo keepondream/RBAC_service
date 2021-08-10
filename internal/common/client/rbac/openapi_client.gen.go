@@ -165,6 +165,25 @@ type ClientInterface interface {
 	PatchRoutesIdWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	PatchRoutesId(ctx context.Context, id string, body PatchRoutesIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetUsers request  with any body
+	GetUsersWithBody(ctx context.Context, params *GetUsersParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PostUsers request  with any body
+	PostUsersWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PostUsers(ctx context.Context, body PostUsersJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteUsersUuidTenant request
+	DeleteUsersUuidTenant(ctx context.Context, uuid string, tenant string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetUsersUuidTenant request  with any body
+	GetUsersUuidTenantWithBody(ctx context.Context, uuid string, tenant string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PatchUsersUuidTenant request  with any body
+	PatchUsersUuidTenantWithBody(ctx context.Context, uuid string, tenant string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PatchUsersUuidTenant(ctx context.Context, uuid string, tenant string, body PatchUsersUuidTenantJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GetGroupsWithBody(ctx context.Context, params *GetGroupsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -493,6 +512,90 @@ func (c *Client) PatchRoutesIdWithBody(ctx context.Context, id string, contentTy
 
 func (c *Client) PatchRoutesId(ctx context.Context, id string, body PatchRoutesIdJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPatchRoutesIdRequest(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetUsersWithBody(ctx context.Context, params *GetUsersParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetUsersRequestWithBody(c.Server, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostUsersWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostUsersRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostUsers(ctx context.Context, body PostUsersJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostUsersRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteUsersUuidTenant(ctx context.Context, uuid string, tenant string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteUsersUuidTenantRequest(c.Server, uuid, tenant)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetUsersUuidTenantWithBody(ctx context.Context, uuid string, tenant string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetUsersUuidTenantRequestWithBody(c.Server, uuid, tenant, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PatchUsersUuidTenantWithBody(ctx context.Context, uuid string, tenant string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPatchUsersUuidTenantRequestWithBody(c.Server, uuid, tenant, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PatchUsersUuidTenant(ctx context.Context, uuid string, tenant string, body PatchUsersUuidTenantJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPatchUsersUuidTenantRequest(c.Server, uuid, tenant, body)
 	if err != nil {
 		return nil, err
 	}
@@ -1679,6 +1782,321 @@ func NewPatchRoutesIdRequestWithBody(server string, id string, contentType strin
 	return req, nil
 }
 
+// NewGetUsersRequestWithBody generates requests for GetUsers with any type of body
+func NewGetUsersRequestWithBody(server string, params *GetUsersParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users")
+	if operationPath[0] == '/' {
+		operationPath = operationPath[1:]
+	}
+	operationURL := url.URL{
+		Path: operationPath,
+	}
+
+	queryURL := serverURL.ResolveReference(&operationURL)
+
+	queryValues := queryURL.Query()
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, params.Page); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
+	}
+
+	if params.PerPage != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "per_page", runtime.ParamLocationQuery, *params.PerPage); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "order", runtime.ParamLocationQuery, params.Order); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
+	}
+
+	if params.Query != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "query", runtime.ParamLocationQuery, *params.Query); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Sort != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sort", runtime.ParamLocationQuery, *params.Sort); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.StartTime != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "start_time", runtime.ParamLocationQuery, *params.StartTime); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.EndTime != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "end_time", runtime.ParamLocationQuery, *params.EndTime); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPostUsersRequest calls the generic PostUsers builder with application/json body
+func NewPostUsersRequest(server string, body PostUsersJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostUsersRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewPostUsersRequestWithBody generates requests for PostUsers with any type of body
+func NewPostUsersRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users")
+	if operationPath[0] == '/' {
+		operationPath = operationPath[1:]
+	}
+	operationURL := url.URL{
+		Path: operationPath,
+	}
+
+	queryURL := serverURL.ResolveReference(&operationURL)
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteUsersUuidTenantRequest generates requests for DeleteUsersUuidTenant
+func NewDeleteUsersUuidTenantRequest(server string, uuid string, tenant string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "tenant", runtime.ParamLocationPath, tenant)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/%s/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = operationPath[1:]
+	}
+	operationURL := url.URL{
+		Path: operationPath,
+	}
+
+	queryURL := serverURL.ResolveReference(&operationURL)
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetUsersUuidTenantRequestWithBody generates requests for GetUsersUuidTenant with any type of body
+func NewGetUsersUuidTenantRequestWithBody(server string, uuid string, tenant string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "tenant", runtime.ParamLocationPath, tenant)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/%s/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = operationPath[1:]
+	}
+	operationURL := url.URL{
+		Path: operationPath,
+	}
+
+	queryURL := serverURL.ResolveReference(&operationURL)
+
+	req, err := http.NewRequest("GET", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPatchUsersUuidTenantRequest calls the generic PatchUsersUuidTenant builder with application/json body
+func NewPatchUsersUuidTenantRequest(server string, uuid string, tenant string, body PatchUsersUuidTenantJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPatchUsersUuidTenantRequestWithBody(server, uuid, tenant, "application/json", bodyReader)
+}
+
+// NewPatchUsersUuidTenantRequestWithBody generates requests for PatchUsersUuidTenant with any type of body
+func NewPatchUsersUuidTenantRequestWithBody(server string, uuid string, tenant string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "tenant", runtime.ParamLocationPath, tenant)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/%s/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = operationPath[1:]
+	}
+	operationURL := url.URL{
+		Path: operationPath,
+	}
+
+	queryURL := serverURL.ResolveReference(&operationURL)
+
+	req, err := http.NewRequest("PATCH", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -1797,6 +2215,25 @@ type ClientWithResponsesInterface interface {
 	PatchRoutesIdWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchRoutesIdResponse, error)
 
 	PatchRoutesIdWithResponse(ctx context.Context, id string, body PatchRoutesIdJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchRoutesIdResponse, error)
+
+	// GetUsers request  with any body
+	GetUsersWithBodyWithResponse(ctx context.Context, params *GetUsersParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetUsersResponse, error)
+
+	// PostUsers request  with any body
+	PostUsersWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostUsersResponse, error)
+
+	PostUsersWithResponse(ctx context.Context, body PostUsersJSONRequestBody, reqEditors ...RequestEditorFn) (*PostUsersResponse, error)
+
+	// DeleteUsersUuidTenant request
+	DeleteUsersUuidTenantWithResponse(ctx context.Context, uuid string, tenant string, reqEditors ...RequestEditorFn) (*DeleteUsersUuidTenantResponse, error)
+
+	// GetUsersUuidTenant request  with any body
+	GetUsersUuidTenantWithBodyWithResponse(ctx context.Context, uuid string, tenant string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetUsersUuidTenantResponse, error)
+
+	// PatchUsersUuidTenant request  with any body
+	PatchUsersUuidTenantWithBodyWithResponse(ctx context.Context, uuid string, tenant string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchUsersUuidTenantResponse, error)
+
+	PatchUsersUuidTenantWithResponse(ctx context.Context, uuid string, tenant string, body PatchUsersUuidTenantJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchUsersUuidTenantResponse, error)
 }
 
 type GetGroupsResponse struct {
@@ -2337,6 +2774,115 @@ func (r PatchRoutesIdResponse) StatusCode() int {
 	return 0
 }
 
+type GetUsersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *UserListResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetUsersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetUsersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PostUsersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *UserInfoResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r PostUsersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostUsersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteUsersUuidTenantResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteUsersUuidTenantResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteUsersUuidTenantResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetUsersUuidTenantResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *UserInfoResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetUsersUuidTenantResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetUsersUuidTenantResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PatchUsersUuidTenantResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *UserInfoResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r PatchUsersUuidTenantResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PatchUsersUuidTenantResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // GetGroupsWithBodyWithResponse request with arbitrary body returning *GetGroupsResponse
 func (c *ClientWithResponses) GetGroupsWithBodyWithResponse(ctx context.Context, params *GetGroupsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetGroupsResponse, error) {
 	rsp, err := c.GetGroupsWithBody(ctx, params, contentType, body, reqEditors...)
@@ -2579,6 +3125,67 @@ func (c *ClientWithResponses) PatchRoutesIdWithResponse(ctx context.Context, id 
 		return nil, err
 	}
 	return ParsePatchRoutesIdResponse(rsp)
+}
+
+// GetUsersWithBodyWithResponse request with arbitrary body returning *GetUsersResponse
+func (c *ClientWithResponses) GetUsersWithBodyWithResponse(ctx context.Context, params *GetUsersParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetUsersResponse, error) {
+	rsp, err := c.GetUsersWithBody(ctx, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetUsersResponse(rsp)
+}
+
+// PostUsersWithBodyWithResponse request with arbitrary body returning *PostUsersResponse
+func (c *ClientWithResponses) PostUsersWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostUsersResponse, error) {
+	rsp, err := c.PostUsersWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostUsersResponse(rsp)
+}
+
+func (c *ClientWithResponses) PostUsersWithResponse(ctx context.Context, body PostUsersJSONRequestBody, reqEditors ...RequestEditorFn) (*PostUsersResponse, error) {
+	rsp, err := c.PostUsers(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostUsersResponse(rsp)
+}
+
+// DeleteUsersUuidTenantWithResponse request returning *DeleteUsersUuidTenantResponse
+func (c *ClientWithResponses) DeleteUsersUuidTenantWithResponse(ctx context.Context, uuid string, tenant string, reqEditors ...RequestEditorFn) (*DeleteUsersUuidTenantResponse, error) {
+	rsp, err := c.DeleteUsersUuidTenant(ctx, uuid, tenant, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteUsersUuidTenantResponse(rsp)
+}
+
+// GetUsersUuidTenantWithBodyWithResponse request with arbitrary body returning *GetUsersUuidTenantResponse
+func (c *ClientWithResponses) GetUsersUuidTenantWithBodyWithResponse(ctx context.Context, uuid string, tenant string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetUsersUuidTenantResponse, error) {
+	rsp, err := c.GetUsersUuidTenantWithBody(ctx, uuid, tenant, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetUsersUuidTenantResponse(rsp)
+}
+
+// PatchUsersUuidTenantWithBodyWithResponse request with arbitrary body returning *PatchUsersUuidTenantResponse
+func (c *ClientWithResponses) PatchUsersUuidTenantWithBodyWithResponse(ctx context.Context, uuid string, tenant string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchUsersUuidTenantResponse, error) {
+	rsp, err := c.PatchUsersUuidTenantWithBody(ctx, uuid, tenant, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePatchUsersUuidTenantResponse(rsp)
+}
+
+func (c *ClientWithResponses) PatchUsersUuidTenantWithResponse(ctx context.Context, uuid string, tenant string, body PatchUsersUuidTenantJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchUsersUuidTenantResponse, error) {
+	rsp, err := c.PatchUsersUuidTenant(ctx, uuid, tenant, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePatchUsersUuidTenantResponse(rsp)
 }
 
 // ParseGetGroupsResponse parses an HTTP response from a GetGroupsWithResponse call
@@ -3205,6 +3812,129 @@ func ParsePatchRoutesIdResponse(rsp *http.Response) (*PatchRoutesIdResponse, err
 			return nil, err
 		}
 		response.JSON422 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetUsersResponse parses an HTTP response from a GetUsersWithResponse call
+func ParseGetUsersResponse(rsp *http.Response) (*GetUsersResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetUsersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest UserListResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePostUsersResponse parses an HTTP response from a PostUsersWithResponse call
+func ParsePostUsersResponse(rsp *http.Response) (*PostUsersResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostUsersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest UserInfoResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteUsersUuidTenantResponse parses an HTTP response from a DeleteUsersUuidTenantWithResponse call
+func ParseDeleteUsersUuidTenantResponse(rsp *http.Response) (*DeleteUsersUuidTenantResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteUsersUuidTenantResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	}
+
+	return response, nil
+}
+
+// ParseGetUsersUuidTenantResponse parses an HTTP response from a GetUsersUuidTenantWithResponse call
+func ParseGetUsersUuidTenantResponse(rsp *http.Response) (*GetUsersUuidTenantResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetUsersUuidTenantResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest UserInfoResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePatchUsersUuidTenantResponse parses an HTTP response from a PatchUsersUuidTenantWithResponse call
+func ParsePatchUsersUuidTenantResponse(rsp *http.Response) (*PatchUsersUuidTenantResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PatchUsersUuidTenantResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest UserInfoResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
 
 	}
 

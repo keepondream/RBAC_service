@@ -14,6 +14,7 @@ import (
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/node"
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/permission"
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/route"
+	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/user"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -38,6 +39,7 @@ func columnChecker(table string) func(string) error {
 		node.Table:       node.ValidColumn,
 		permission.Table: permission.ValidColumn,
 		route.Table:      route.ValidColumn,
+		user.Table:       user.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {

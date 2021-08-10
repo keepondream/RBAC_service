@@ -14,6 +14,7 @@ var NewRoute = wire.NewSet(service.NewRoute, wire.Bind(new(ports.Router), new(*s
 var NewPermission = wire.NewSet(service.NewPermission, wire.Bind(new(ports.Permissioner), new(*service.Permission)))
 var NewNode = wire.NewSet(service.NewNode, wire.Bind(new(ports.Noder), new(*service.Node)))
 var NewGroup = wire.NewSet(service.NewGroup, wire.Bind(new(ports.Grouper), new(*service.Group)))
+var NewUser = wire.NewSet(service.NewUser, wire.Bind(new(ports.Userer), new(*service.User)))
 
 func NewApplication() (*App, error) {
 	wire.Build(
@@ -30,6 +31,7 @@ func NewApplication() (*App, error) {
 		NewPermission,
 		NewNode,
 		NewGroup,
+		NewUser,
 	)
 
 	return &App{}, nil

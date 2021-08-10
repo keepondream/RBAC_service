@@ -4,9 +4,9 @@ dev:
 rbacWire: rbacEnt yapi
 	cd ./internal/rbac/app && wire
 
-# 路由表, 权限表, 权限路由关系表(多对多), 分组表(角色:role, 角色组:role_group, 用户:user, 用户组:user_group, 菜单:menu, 菜单组:menu_group, 权限组:permission_group, 页面元素:element, 页面元素组:element_group 等等... ), 权限分组关系表(多对多)
-rbacFirstEntSchema:
-	cd ./internal/rbac/adapters && ent init Route Permission
+# 最终抽象: 路由表, 权限表, 节点表(可以->角色/菜单/页面元素等等), 分组表(可以->角色组/菜单组/页面元素组等等), 用户表(只记录用户唯一标识和域以及是否为超级管理员)
+# rbacFirstEntSchema:
+# 	cd ./internal/rbac/adapters && ent init Route Permission
 
 rbacEnt:
 	cd ./internal/rbac/adapters && go generate ./ent

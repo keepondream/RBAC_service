@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/group"
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/node"
+	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/user"
 )
 
 // GroupCreate is the builder for creating a Group entity.
@@ -36,6 +37,20 @@ func (gc *GroupCreate) SetName(s string) *GroupCreate {
 // SetType sets the "type" field.
 func (gc *GroupCreate) SetType(s string) *GroupCreate {
 	gc.mutation.SetType(s)
+	return gc
+}
+
+// SetParentID sets the "parent_id" field.
+func (gc *GroupCreate) SetParentID(i int) *GroupCreate {
+	gc.mutation.SetParentID(i)
+	return gc
+}
+
+// SetNillableParentID sets the "parent_id" field if the given value is not nil.
+func (gc *GroupCreate) SetNillableParentID(i *int) *GroupCreate {
+	if i != nil {
+		gc.SetParentID(*i)
+	}
 	return gc
 }
 
@@ -73,6 +88,26 @@ func (gc *GroupCreate) SetNillableUpdatedAt(t *time.Time) *GroupCreate {
 	return gc
 }
 
+// SetParent sets the "parent" edge to the Group entity.
+func (gc *GroupCreate) SetParent(g *Group) *GroupCreate {
+	return gc.SetParentID(g.ID)
+}
+
+// AddChildIDs adds the "children" edge to the Group entity by IDs.
+func (gc *GroupCreate) AddChildIDs(ids ...int) *GroupCreate {
+	gc.mutation.AddChildIDs(ids...)
+	return gc
+}
+
+// AddChildren adds the "children" edges to the Group entity.
+func (gc *GroupCreate) AddChildren(g ...*Group) *GroupCreate {
+	ids := make([]int, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return gc.AddChildIDs(ids...)
+}
+
 // AddNodeIDs adds the "nodes" edge to the Node entity by IDs.
 func (gc *GroupCreate) AddNodeIDs(ids ...int) *GroupCreate {
 	gc.mutation.AddNodeIDs(ids...)
@@ -86,6 +121,21 @@ func (gc *GroupCreate) AddNodes(n ...*Node) *GroupCreate {
 		ids[i] = n[i].ID
 	}
 	return gc.AddNodeIDs(ids...)
+}
+
+// AddUserIDs adds the "users" edge to the User entity by IDs.
+func (gc *GroupCreate) AddUserIDs(ids ...int) *GroupCreate {
+	gc.mutation.AddUserIDs(ids...)
+	return gc
+}
+
+// AddUsers adds the "users" edges to the User entity.
+func (gc *GroupCreate) AddUsers(u ...*User) *GroupCreate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return gc.AddUserIDs(ids...)
 }
 
 // Mutation returns the GroupMutation object of the builder.
@@ -260,6 +310,45 @@ func (gc *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 		})
 		_node.UpdatedAt = value
 	}
+	if nodes := gc.mutation.ParentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   group.ParentTable,
+			Columns: []string{group.ParentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: group.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ParentID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := gc.mutation.ChildrenIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.ChildrenTable,
+			Columns: []string{group.ChildrenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: group.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := gc.mutation.NodesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
@@ -271,6 +360,25 @@ func (gc *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: node.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := gc.mutation.UsersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   group.UsersTable,
+			Columns: group.UsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
 				},
 			},
 		}

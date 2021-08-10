@@ -25,6 +25,8 @@ const (
 	EdgeRoutes = "routes"
 	// EdgeNodes holds the string denoting the nodes edge name in mutations.
 	EdgeNodes = "nodes"
+	// EdgeUsers holds the string denoting the users edge name in mutations.
+	EdgeUsers = "users"
 	// Table holds the table name of the permission in the database.
 	Table = "permissions"
 	// RoutesTable is the table the holds the routes relation/edge. The primary key declared below.
@@ -37,6 +39,11 @@ const (
 	// NodesInverseTable is the table name for the Node entity.
 	// It exists in this package in order to avoid circular dependency with the "node" package.
 	NodesInverseTable = "nodes"
+	// UsersTable is the table the holds the users relation/edge. The primary key declared below.
+	UsersTable = "permission_users"
+	// UsersInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	UsersInverseTable = "users"
 )
 
 // Columns holds all SQL columns for permission fields.
@@ -56,6 +63,9 @@ var (
 	// NodesPrimaryKey and NodesColumn2 are the table columns denoting the
 	// primary key for the nodes relation (M2M).
 	NodesPrimaryKey = []string{"node_id", "permission_id"}
+	// UsersPrimaryKey and UsersColumn2 are the table columns denoting the
+	// primary key for the users relation (M2M).
+	UsersPrimaryKey = []string{"permission_id", "user_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).

@@ -47,6 +47,7 @@ func (Node) Edges() []ent.Edge {
 		edge.From("groups", Group.Type).
 			Ref("nodes"),
 		edge.To("permissions", Permission.Type),
+		edge.To("users", User.Type),
 	}
 }
 

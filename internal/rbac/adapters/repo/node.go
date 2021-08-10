@@ -38,25 +38,23 @@ func (r *Node) Ent2Port(model *ent.Node) *ports.Node {
 	return &resp
 }
 func (r *Node) Model2Response(ctx context.Context, model *ent.Node) *ports.NodeInfoResponse {
-	children := []ports.Node{}
-	for _, c := range model.Edges.Children {
-		children = append(children, *r.Ent2Port(c))
-	}
-	permissions := []ports.Permission{}
-
-	permissionRepo := NewPermission(r.Repo)
-	for _, p := range model.Edges.Permissions {
-		permissions = append(permissions, *permissionRepo.Ent2Port(p))
-	}
-
 	resp := ports.NodeInfoResponse{
 		Node:        *r.Ent2Port(model),
-		Children:    children,
-		Permissions: permissions,
+		Children:    []ports.Node{},
+		Permissions: []ports.Permission{},
 	}
 
 	if model.Edges.Parent != nil {
 		resp.Parent = r.Ent2Port(model.Edges.Parent)
+	}
+
+	for _, c := range model.Edges.Children {
+		resp.Children = append(resp.Children, *r.Ent2Port(c))
+	}
+
+	permissionRepo := NewPermission(r.Repo)
+	for _, p := range model.Edges.Permissions {
+		resp.Permissions = append(resp.Permissions, *permissionRepo.Ent2Port(p))
 	}
 
 	return &resp
@@ -108,7 +106,11 @@ func (r *Node) IsUnique(ctx context.Context, tenant string, name string, node_ty
 }
 
 func (r *Node) GetById(ctx context.Context, id string) (*ports.NodeInfoResponse, error) {
-	model, err := r.EntClient.Node.Query().WithParent().WithChildren().WithPermissions().Where(node.IDEQ(cast.ToInt(id))).First(ctx)
+	model, err := r.EntClient.Node.Query().
+		WithParent().
+		WithChildren().
+		WithPermissions().
+		Where(node.IDEQ(cast.ToInt(id))).First(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +135,10 @@ func (r *Node) List(ctx context.Context, params ports.GetNodesParams) (*ports.No
 
 	offset, limit := utils.ParsePagination(string(params.Page), pageSize)
 
-	modelQuery := r.EntClient.Node.Query().WithChildren().WithParent().WithPermissions()
+	modelQuery := r.EntClient.Node.Query().
+		WithParent().
+		WithChildren().
+		WithPermissions()
 
 	if params.Query != nil {
 		conditions := utils.ParseQuery(string(*params.Query))
@@ -246,7 +251,7 @@ func (r *Node) Update(ctx context.Context, params ports.PatchNodesIdJSONBody, id
 		if *params.ParentId == "" {
 			modelQuery.ClearParent()
 		} else {
-			parent, err := r.EntClient.Node.Query().Where(node.ID(cast.ToInt(params.ParentId))).First(ctx)
+			parent, err := r.EntClient.Node.Query().Where(node.Tenant(model.Tenant)).Where(node.ID(cast.ToInt(params.ParentId))).First(ctx)
 			if err != nil {
 				return nil, err
 			}

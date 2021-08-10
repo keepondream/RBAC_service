@@ -103,7 +103,7 @@ func (h *HttpServer) PatchNodesId(w http.ResponseWriter, r *http.Request, id str
 		utils.Render(w, r, 400, utils.WithError(err))
 		return
 	}
-	_, err = h.NodeService.GetById(r.Context(), id)
+	nodeInfo, err := h.NodeService.GetById(r.Context(), id)
 	if err != nil {
 		utils.Render(w, r, 404, utils.WithError(err))
 		return
@@ -116,8 +116,8 @@ func (h *HttpServer) PatchNodesId(w http.ResponseWriter, r *http.Request, id str
 			return
 		}
 
-		if parent.Tenant != *params.Tenant {
-			utils.Render(w, r, 422, utils.WithCode(string(ErrCodeN422999)), utils.WithField("parent_id"), utils.WithError(fmt.Errorf("parent tenant not equal params.tenant:%s", *params.Tenant)))
+		if parent.Tenant != nodeInfo.Tenant {
+			utils.Render(w, r, 422, utils.WithCode(string(ErrCodeN422999)), utils.WithField("parent_id"), utils.WithError(fmt.Errorf("parent tenant not equal current.tenant:%s", nodeInfo.Tenant)))
 			return
 		}
 	}

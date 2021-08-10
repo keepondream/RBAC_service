@@ -49,5 +49,6 @@ func (Permission) Edges() []ent.Edge {
 		edge.To("routes", Route.Type),
 		edge.From("nodes", Node.Type).
 			Ref("permissions"),
+		edge.To("users", User.Type),
 	}
 }

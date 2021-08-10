@@ -716,7 +716,7 @@
           }
         },
         "operationId": "get-groups",
-        "description": "分组列表",
+        "description": "分组列表\nquery: 默认name查询,其余字段多维度,支持子属性精确匹配,\n例如: nodes.id:1 查询包含节点ID为1的分组\n例如: parent.id:1 parent.id:2 查询父级ID为1和2的分组\n例如: children.name:二级菜单 children.name:三级菜单  查询自己包含二级菜单和三级菜单的分组",
         "requestBody": {
           "content": {
             "application/x-www-form-urlencoded": {
@@ -795,6 +795,10 @@
                     "items": {
                       "type": "string"
                     }
+                  },
+                  "parent_id": {
+                    "type": "string",
+                    "description": "父级ID,非必填选项"
                   }
                 },
                 "required": [
@@ -895,6 +899,10 @@
                     "items": {
                       "type": "string"
                     }
+                  },
+                  "parent_id": {
+                    "type": "string",
+                    "description": "父级ID,非必填选项"
                   }
                 }
               }
@@ -914,6 +922,271 @@
           "group"
         ],
         "description": "删除分组"
+      }
+    },
+    "/users": {
+      "get": {
+        "summary": "绑定用户列表",
+        "tags": [
+          "user"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserListResponse"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-users",
+        "description": "绑定用户列表\nquery: 默认uuid查询,其余字段多维度,支持子属性精确匹配,\n例如: nodes.id:1 查询包含节点ID为1的用户\n例如: groups.id:1 查询包含分组ID为1的用户\n例如: permissions.id:1 查询包含权限ID为1的用户\n例如: parent.id:1 parent.id:2 查询父级ID为1和2的用户\n例如: children.name:二级菜单 children.name:三级菜单  查询自己包含二级菜单和三级菜单的用户",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          },
+          {
+            "$ref": "#/components/parameters/order"
+          },
+          {
+            "$ref": "#/components/parameters/query"
+          },
+          {
+            "$ref": "#/components/parameters/sort"
+          },
+          {
+            "$ref": "#/components/parameters/start_time"
+          },
+          {
+            "$ref": "#/components/parameters/end_time"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "绑定用户",
+        "operationId": "post-users",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserInfoResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "绑定用户",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "uuid": {
+                    "type": "string",
+                    "description": "用户唯一标识,由认证服务或者第三方服务提供的唯一标识",
+                    "minLength": 1
+                  },
+                  "tenant": {
+                    "$ref": "#/components/schemas/ItemTenant"
+                  },
+                  "data": {
+                    "$ref": "#/components/schemas/ItemData"
+                  },
+                  "is_super": {
+                    "type": "boolean",
+                    "description": "是否为超级管理员,该标识意味着当前用户不需要鉴权,有系统最大权限"
+                  },
+                  "parent_id": {
+                    "type": "string",
+                    "description": "父级ID"
+                  },
+                  "node_ids": {
+                    "type": "array",
+                    "description": "绑定节点IDs, 可以为 角色ID,菜单ID,页面元素ID等等",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "group_ids": {
+                    "type": "array",
+                    "description": "绑定分组ID\bS,可以为 角色组,菜单组页面元素组等等",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "permission_ids": {
+                    "type": "array",
+                    "description": "绑定权限IDS",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "uuid",
+                  "tenant",
+                  "is_super",
+                  "node_ids",
+                  "group_ids",
+                  "permission_ids"
+                ]
+              }
+            }
+          }
+        },
+        "tags": [
+          "user"
+        ]
+      }
+    },
+    "/users/{uuid}/{tenant}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "uuid",
+          "in": "path",
+          "required": true,
+          "description": "用户唯一标识UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tenant",
+          "in": "path",
+          "required": true,
+          "description": "用户所属域标识"
+        }
+      ],
+      "get": {
+        "summary": "获取绑定用户详情(包含拥有的权限,角色,子级用户,角色组,菜单组等等)",
+        "tags": [
+          "user"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserInfoResponse"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-users-uuid-tenant",
+        "description": "获取绑定用户详情(包含拥有的权限,角色,子级用户,角色组,菜单组等等)",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "更新绑定用户(角色,权限,子级,父级,分组等等)",
+        "operationId": "patch-users-uuid-tenant",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserInfoResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "user"
+        ],
+        "description": "更新绑定用户(角色,权限,子级,父级,分组等等)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "tenant": {
+                    "$ref": "#/components/schemas/ItemTenant"
+                  },
+                  "data": {
+                    "$ref": "#/components/schemas/ItemData"
+                  },
+                  "is_super": {
+                    "type": "boolean",
+                    "description": "是否为超级管理员,该标识意味着当前用户不需要鉴权,有系统最大权限"
+                  },
+                  "parent_id": {
+                    "type": "string",
+                    "description": "父级ID"
+                  },
+                  "node_ids": {
+                    "type": "array",
+                    "description": "绑定节点IDs, 可以为 角色ID,菜单ID,页面元素ID等等",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "group_ids": {
+                    "type": "array",
+                    "description": "绑定分组ID\bS,可以为 角色组,菜单组页面元素组等等",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "permission_ids": {
+                    "type": "array",
+                    "description": "绑定权限IDS",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "删除绑定用户",
+        "operationId": "delete-users-uuid-tenant",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "user"
+        ],
+        "description": "删除绑定用户"
       }
     }
   },
@@ -1022,7 +1295,10 @@
                   "$ref": "#/components/schemas/Route"
                 }
               }
-            }
+            },
+            "required": [
+              "routes"
+            ]
           }
         ],
         "examples": []
@@ -1191,6 +1467,10 @@
                 "type": "string",
                 "format": "date-time",
                 "description": "零时区时间格式: YYYY-MM-DDTHH:MM:SSZ"
+              },
+              "parent_id": {
+                "type": "string",
+                "description": "父级ID"
               }
             },
             "required": [
@@ -1200,7 +1480,8 @@
               "type",
               "data",
               "created_at",
-              "updated_at"
+              "updated_at",
+              "parent_id"
             ]
           }
         ],
@@ -1239,8 +1520,21 @@
                 "items": {
                   "$ref": "#/components/schemas/Node"
                 }
+              },
+              "parent": {
+                "$ref": "#/components/schemas/Group"
+              },
+              "children": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Group"
+                }
               }
-            }
+            },
+            "required": [
+              "nodes",
+              "children"
+            ]
           }
         ]
       },
@@ -1301,6 +1595,118 @@
           "422.999"
         ],
         "example": "422.000"
+      },
+      "User": {
+        "title": "User",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "用户唯一标识,由认证服务或者第三方服务提供的唯一标识"
+          },
+          "parent_id": {
+            "type": "string",
+            "description": "父级ID"
+          },
+          "is_super": {
+            "type": "boolean",
+            "description": "是否为超级管理员,该标识意味着当前用户不需要鉴权,有系统最大权限"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ItemData"
+          },
+          "tenant": {
+            "$ref": "#/components/schemas/ItemTenant"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "零时区时间格式: YYYY-MM-DDTHH:MM:SSZ"
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "零时区时间格式: YYYY-MM-DDTHH:MM:SSZ",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "uuid",
+          "parent_id",
+          "is_super",
+          "data",
+          "tenant",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "UserInfoResponse": {
+        "title": "UserInfoResponse",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/User"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "parent": {
+                "$ref": "#/components/schemas/User"
+              },
+              "children": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/User"
+                }
+              },
+              "nodes": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Node"
+                }
+              },
+              "groups": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Group"
+                }
+              },
+              "permissions": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Permission"
+                }
+              }
+            },
+            "required": [
+              "children",
+              "nodes",
+              "groups",
+              "permissions"
+            ]
+          }
+        ]
+      },
+      "UserListResponse": {
+        "title": "UserListResponse",
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserInfoResponse"
+            }
+          }
+        },
+        "required": [
+          "total",
+          "items"
+        ]
       }
     },
     "parameters": {
@@ -1430,6 +1836,9 @@
     },
     {
       "name": "route"
+    },
+    {
+      "name": "user"
     }
   ]
 }

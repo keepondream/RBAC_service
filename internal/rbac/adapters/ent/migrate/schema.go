@@ -17,13 +17,21 @@ var (
 		{Name: "data", Type: field.TypeJSON},
 		{Name: "created_at", Type: field.TypeTime, Default: "(now() at time zone 'utc')", SchemaType: map[string]string{"postgres": "timestamptz(0)"}},
 		{Name: "updated_at", Type: field.TypeTime, Default: "(now() at time zone 'utc')", SchemaType: map[string]string{"postgres": "timestamptz(0)"}},
+		{Name: "parent_id", Type: field.TypeInt, Nullable: true},
 	}
 	// GroupsTable holds the schema information for the "groups" table.
 	GroupsTable = &schema.Table{
-		Name:        "groups",
-		Columns:     GroupsColumns,
-		PrimaryKey:  []*schema.Column{GroupsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "groups",
+		Columns:    GroupsColumns,
+		PrimaryKey: []*schema.Column{GroupsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "groups_groups_children",
+				Columns:    []*schema.Column{GroupsColumns[7]},
+				RefColumns: []*schema.Column{GroupsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "group_tenant_name_type",
@@ -112,6 +120,38 @@ var (
 			},
 		},
 	}
+	// UsersColumns holds the columns for the "users" table.
+	UsersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "tenant", Type: field.TypeString},
+		{Name: "uuid", Type: field.TypeString},
+		{Name: "is_super", Type: field.TypeBool, Default: false},
+		{Name: "data", Type: field.TypeJSON},
+		{Name: "created_at", Type: field.TypeTime, Default: "(now() at time zone 'utc')", SchemaType: map[string]string{"postgres": "timestamptz(0)"}},
+		{Name: "updated_at", Type: field.TypeTime, Default: "(now() at time zone 'utc')", SchemaType: map[string]string{"postgres": "timestamptz(0)"}},
+		{Name: "parent_id", Type: field.TypeInt, Nullable: true},
+	}
+	// UsersTable holds the schema information for the "users" table.
+	UsersTable = &schema.Table{
+		Name:       "users",
+		Columns:    UsersColumns,
+		PrimaryKey: []*schema.Column{UsersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "users_users_children",
+				Columns:    []*schema.Column{UsersColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "user_tenant_uuid",
+				Unique:  true,
+				Columns: []*schema.Column{UsersColumns[1], UsersColumns[2]},
+			},
+		},
+	}
 	// GroupNodesColumns holds the columns for the "group_nodes" table.
 	GroupNodesColumns = []*schema.Column{
 		{Name: "group_id", Type: field.TypeInt},
@@ -133,6 +173,31 @@ var (
 				Symbol:     "group_nodes_node_id",
 				Columns:    []*schema.Column{GroupNodesColumns[1]},
 				RefColumns: []*schema.Column{NodesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// GroupUsersColumns holds the columns for the "group_users" table.
+	GroupUsersColumns = []*schema.Column{
+		{Name: "group_id", Type: field.TypeInt},
+		{Name: "user_id", Type: field.TypeInt},
+	}
+	// GroupUsersTable holds the schema information for the "group_users" table.
+	GroupUsersTable = &schema.Table{
+		Name:       "group_users",
+		Columns:    GroupUsersColumns,
+		PrimaryKey: []*schema.Column{GroupUsersColumns[0], GroupUsersColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "group_users_group_id",
+				Columns:    []*schema.Column{GroupUsersColumns[0]},
+				RefColumns: []*schema.Column{GroupsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "group_users_user_id",
+				Columns:    []*schema.Column{GroupUsersColumns[1]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 		},
@@ -162,6 +227,31 @@ var (
 			},
 		},
 	}
+	// NodeUsersColumns holds the columns for the "node_users" table.
+	NodeUsersColumns = []*schema.Column{
+		{Name: "node_id", Type: field.TypeInt},
+		{Name: "user_id", Type: field.TypeInt},
+	}
+	// NodeUsersTable holds the schema information for the "node_users" table.
+	NodeUsersTable = &schema.Table{
+		Name:       "node_users",
+		Columns:    NodeUsersColumns,
+		PrimaryKey: []*schema.Column{NodeUsersColumns[0], NodeUsersColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "node_users_node_id",
+				Columns:    []*schema.Column{NodeUsersColumns[0]},
+				RefColumns: []*schema.Column{NodesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "node_users_user_id",
+				Columns:    []*schema.Column{NodeUsersColumns[1]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// PermissionRoutesColumns holds the columns for the "permission_routes" table.
 	PermissionRoutesColumns = []*schema.Column{
 		{Name: "permission_id", Type: field.TypeInt},
@@ -187,24 +277,61 @@ var (
 			},
 		},
 	}
+	// PermissionUsersColumns holds the columns for the "permission_users" table.
+	PermissionUsersColumns = []*schema.Column{
+		{Name: "permission_id", Type: field.TypeInt},
+		{Name: "user_id", Type: field.TypeInt},
+	}
+	// PermissionUsersTable holds the schema information for the "permission_users" table.
+	PermissionUsersTable = &schema.Table{
+		Name:       "permission_users",
+		Columns:    PermissionUsersColumns,
+		PrimaryKey: []*schema.Column{PermissionUsersColumns[0], PermissionUsersColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "permission_users_permission_id",
+				Columns:    []*schema.Column{PermissionUsersColumns[0]},
+				RefColumns: []*schema.Column{PermissionsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "permission_users_user_id",
+				Columns:    []*schema.Column{PermissionUsersColumns[1]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		GroupsTable,
 		NodesTable,
 		PermissionsTable,
 		RoutesTable,
+		UsersTable,
 		GroupNodesTable,
+		GroupUsersTable,
 		NodePermissionsTable,
+		NodeUsersTable,
 		PermissionRoutesTable,
+		PermissionUsersTable,
 	}
 )
 
 func init() {
+	GroupsTable.ForeignKeys[0].RefTable = GroupsTable
 	NodesTable.ForeignKeys[0].RefTable = NodesTable
+	UsersTable.ForeignKeys[0].RefTable = UsersTable
 	GroupNodesTable.ForeignKeys[0].RefTable = GroupsTable
 	GroupNodesTable.ForeignKeys[1].RefTable = NodesTable
+	GroupUsersTable.ForeignKeys[0].RefTable = GroupsTable
+	GroupUsersTable.ForeignKeys[1].RefTable = UsersTable
 	NodePermissionsTable.ForeignKeys[0].RefTable = NodesTable
 	NodePermissionsTable.ForeignKeys[1].RefTable = PermissionsTable
+	NodeUsersTable.ForeignKeys[0].RefTable = NodesTable
+	NodeUsersTable.ForeignKeys[1].RefTable = UsersTable
 	PermissionRoutesTable.ForeignKeys[0].RefTable = PermissionsTable
 	PermissionRoutesTable.ForeignKeys[1].RefTable = RoutesTable
+	PermissionUsersTable.ForeignKeys[0].RefTable = PermissionsTable
+	PermissionUsersTable.ForeignKeys[1].RefTable = UsersTable
 }

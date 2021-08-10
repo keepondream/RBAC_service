@@ -19,217 +19,217 @@ import (
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/user"
 )
 
-// NodeQuery is the builder for querying Node entities.
-type NodeQuery struct {
+// UserQuery is the builder for querying User entities.
+type UserQuery struct {
 	config
 	limit      *int
 	offset     *int
 	unique     *bool
 	order      []OrderFunc
 	fields     []string
-	predicates []predicate.Node
+	predicates []predicate.User
 	// eager-loading edges.
-	withParent      *NodeQuery
-	withChildren    *NodeQuery
+	withParent      *UserQuery
+	withChildren    *UserQuery
 	withGroups      *GroupQuery
+	withNodes       *NodeQuery
 	withPermissions *PermissionQuery
-	withUsers       *UserQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
-// Where adds a new predicate for the NodeQuery builder.
-func (nq *NodeQuery) Where(ps ...predicate.Node) *NodeQuery {
-	nq.predicates = append(nq.predicates, ps...)
-	return nq
+// Where adds a new predicate for the UserQuery builder.
+func (uq *UserQuery) Where(ps ...predicate.User) *UserQuery {
+	uq.predicates = append(uq.predicates, ps...)
+	return uq
 }
 
 // Limit adds a limit step to the query.
-func (nq *NodeQuery) Limit(limit int) *NodeQuery {
-	nq.limit = &limit
-	return nq
+func (uq *UserQuery) Limit(limit int) *UserQuery {
+	uq.limit = &limit
+	return uq
 }
 
 // Offset adds an offset step to the query.
-func (nq *NodeQuery) Offset(offset int) *NodeQuery {
-	nq.offset = &offset
-	return nq
+func (uq *UserQuery) Offset(offset int) *UserQuery {
+	uq.offset = &offset
+	return uq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (nq *NodeQuery) Unique(unique bool) *NodeQuery {
-	nq.unique = &unique
-	return nq
+func (uq *UserQuery) Unique(unique bool) *UserQuery {
+	uq.unique = &unique
+	return uq
 }
 
 // Order adds an order step to the query.
-func (nq *NodeQuery) Order(o ...OrderFunc) *NodeQuery {
-	nq.order = append(nq.order, o...)
-	return nq
+func (uq *UserQuery) Order(o ...OrderFunc) *UserQuery {
+	uq.order = append(uq.order, o...)
+	return uq
 }
 
 // QueryParent chains the current query on the "parent" edge.
-func (nq *NodeQuery) QueryParent() *NodeQuery {
-	query := &NodeQuery{config: nq.config}
+func (uq *UserQuery) QueryParent() *UserQuery {
+	query := &UserQuery{config: uq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := nq.prepareQuery(ctx); err != nil {
+		if err := uq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		selector := nq.sqlQuery(ctx)
+		selector := uq.sqlQuery(ctx)
 		if err := selector.Err(); err != nil {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(node.Table, node.FieldID, selector),
-			sqlgraph.To(node.Table, node.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, node.ParentTable, node.ParentColumn),
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, user.ParentTable, user.ParentColumn),
 		)
-		fromU = sqlgraph.SetNeighbors(nq.driver.Dialect(), step)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
 }
 
 // QueryChildren chains the current query on the "children" edge.
-func (nq *NodeQuery) QueryChildren() *NodeQuery {
-	query := &NodeQuery{config: nq.config}
+func (uq *UserQuery) QueryChildren() *UserQuery {
+	query := &UserQuery{config: uq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := nq.prepareQuery(ctx); err != nil {
+		if err := uq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		selector := nq.sqlQuery(ctx)
+		selector := uq.sqlQuery(ctx)
 		if err := selector.Err(); err != nil {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(node.Table, node.FieldID, selector),
-			sqlgraph.To(node.Table, node.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, node.ChildrenTable, node.ChildrenColumn),
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ChildrenTable, user.ChildrenColumn),
 		)
-		fromU = sqlgraph.SetNeighbors(nq.driver.Dialect(), step)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
 }
 
 // QueryGroups chains the current query on the "groups" edge.
-func (nq *NodeQuery) QueryGroups() *GroupQuery {
-	query := &GroupQuery{config: nq.config}
+func (uq *UserQuery) QueryGroups() *GroupQuery {
+	query := &GroupQuery{config: uq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := nq.prepareQuery(ctx); err != nil {
+		if err := uq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		selector := nq.sqlQuery(ctx)
+		selector := uq.sqlQuery(ctx)
 		if err := selector.Err(); err != nil {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(node.Table, node.FieldID, selector),
+			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(group.Table, group.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, node.GroupsTable, node.GroupsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2M, true, user.GroupsTable, user.GroupsPrimaryKey...),
 		)
-		fromU = sqlgraph.SetNeighbors(nq.driver.Dialect(), step)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryNodes chains the current query on the "nodes" edge.
+func (uq *UserQuery) QueryNodes() *NodeQuery {
+	query := &NodeQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(node.Table, node.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, user.NodesTable, user.NodesPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
 }
 
 // QueryPermissions chains the current query on the "permissions" edge.
-func (nq *NodeQuery) QueryPermissions() *PermissionQuery {
-	query := &PermissionQuery{config: nq.config}
+func (uq *UserQuery) QueryPermissions() *PermissionQuery {
+	query := &PermissionQuery{config: uq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := nq.prepareQuery(ctx); err != nil {
+		if err := uq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		selector := nq.sqlQuery(ctx)
+		selector := uq.sqlQuery(ctx)
 		if err := selector.Err(); err != nil {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(node.Table, node.FieldID, selector),
+			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(permission.Table, permission.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, node.PermissionsTable, node.PermissionsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2M, true, user.PermissionsTable, user.PermissionsPrimaryKey...),
 		)
-		fromU = sqlgraph.SetNeighbors(nq.driver.Dialect(), step)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
 }
 
-// QueryUsers chains the current query on the "users" edge.
-func (nq *NodeQuery) QueryUsers() *UserQuery {
-	query := &UserQuery{config: nq.config}
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := nq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := nq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(node.Table, node.FieldID, selector),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, node.UsersTable, node.UsersPrimaryKey...),
-		)
-		fromU = sqlgraph.SetNeighbors(nq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// First returns the first Node entity from the query.
-// Returns a *NotFoundError when no Node was found.
-func (nq *NodeQuery) First(ctx context.Context) (*Node, error) {
-	nodes, err := nq.Limit(1).All(ctx)
+// First returns the first User entity from the query.
+// Returns a *NotFoundError when no User was found.
+func (uq *UserQuery) First(ctx context.Context) (*User, error) {
+	nodes, err := uq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{node.Label}
+		return nil, &NotFoundError{user.Label}
 	}
 	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (nq *NodeQuery) FirstX(ctx context.Context) *Node {
-	node, err := nq.First(ctx)
+func (uq *UserQuery) FirstX(ctx context.Context) *User {
+	node, err := uq.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
 	return node
 }
 
-// FirstID returns the first Node ID from the query.
-// Returns a *NotFoundError when no Node ID was found.
-func (nq *NodeQuery) FirstID(ctx context.Context) (id int, err error) {
+// FirstID returns the first User ID from the query.
+// Returns a *NotFoundError when no User ID was found.
+func (uq *UserQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = nq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = uq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{node.Label}
+		err = &NotFoundError{user.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (nq *NodeQuery) FirstIDX(ctx context.Context) int {
-	id, err := nq.FirstID(ctx)
+func (uq *UserQuery) FirstIDX(ctx context.Context) int {
+	id, err := uq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
 	return id
 }
 
-// Only returns a single Node entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one Node entity is not found.
-// Returns a *NotFoundError when no Node entities are found.
-func (nq *NodeQuery) Only(ctx context.Context) (*Node, error) {
-	nodes, err := nq.Limit(2).All(ctx)
+// Only returns a single User entity found by the query, ensuring it only returns one.
+// Returns a *NotSingularError when exactly one User entity is not found.
+// Returns a *NotFoundError when no User entities are found.
+func (uq *UserQuery) Only(ctx context.Context) (*User, error) {
+	nodes, err := uq.Limit(2).All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -237,78 +237,78 @@ func (nq *NodeQuery) Only(ctx context.Context) (*Node, error) {
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{node.Label}
+		return nil, &NotFoundError{user.Label}
 	default:
-		return nil, &NotSingularError{node.Label}
+		return nil, &NotSingularError{user.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (nq *NodeQuery) OnlyX(ctx context.Context) *Node {
-	node, err := nq.Only(ctx)
+func (uq *UserQuery) OnlyX(ctx context.Context) *User {
+	node, err := uq.Only(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return node
 }
 
-// OnlyID is like Only, but returns the only Node ID in the query.
-// Returns a *NotSingularError when exactly one Node ID is not found.
+// OnlyID is like Only, but returns the only User ID in the query.
+// Returns a *NotSingularError when exactly one User ID is not found.
 // Returns a *NotFoundError when no entities are found.
-func (nq *NodeQuery) OnlyID(ctx context.Context) (id int, err error) {
+func (uq *UserQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = nq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = uq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
 	switch len(ids) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{node.Label}
+		err = &NotFoundError{user.Label}
 	default:
-		err = &NotSingularError{node.Label}
+		err = &NotSingularError{user.Label}
 	}
 	return
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (nq *NodeQuery) OnlyIDX(ctx context.Context) int {
-	id, err := nq.OnlyID(ctx)
+func (uq *UserQuery) OnlyIDX(ctx context.Context) int {
+	id, err := uq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return id
 }
 
-// All executes the query and returns a list of Nodes.
-func (nq *NodeQuery) All(ctx context.Context) ([]*Node, error) {
-	if err := nq.prepareQuery(ctx); err != nil {
+// All executes the query and returns a list of Users.
+func (uq *UserQuery) All(ctx context.Context) ([]*User, error) {
+	if err := uq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return nq.sqlAll(ctx)
+	return uq.sqlAll(ctx)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (nq *NodeQuery) AllX(ctx context.Context) []*Node {
-	nodes, err := nq.All(ctx)
+func (uq *UserQuery) AllX(ctx context.Context) []*User {
+	nodes, err := uq.All(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return nodes
 }
 
-// IDs executes the query and returns a list of Node IDs.
-func (nq *NodeQuery) IDs(ctx context.Context) ([]int, error) {
+// IDs executes the query and returns a list of User IDs.
+func (uq *UserQuery) IDs(ctx context.Context) ([]int, error) {
 	var ids []int
-	if err := nq.Select(node.FieldID).Scan(ctx, &ids); err != nil {
+	if err := uq.Select(user.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (nq *NodeQuery) IDsX(ctx context.Context) []int {
-	ids, err := nq.IDs(ctx)
+func (uq *UserQuery) IDsX(ctx context.Context) []int {
+	ids, err := uq.IDs(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -316,16 +316,16 @@ func (nq *NodeQuery) IDsX(ctx context.Context) []int {
 }
 
 // Count returns the count of the given query.
-func (nq *NodeQuery) Count(ctx context.Context) (int, error) {
-	if err := nq.prepareQuery(ctx); err != nil {
+func (uq *UserQuery) Count(ctx context.Context) (int, error) {
+	if err := uq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return nq.sqlCount(ctx)
+	return uq.sqlCount(ctx)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (nq *NodeQuery) CountX(ctx context.Context) int {
-	count, err := nq.Count(ctx)
+func (uq *UserQuery) CountX(ctx context.Context) int {
+	count, err := uq.Count(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -333,98 +333,98 @@ func (nq *NodeQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (nq *NodeQuery) Exist(ctx context.Context) (bool, error) {
-	if err := nq.prepareQuery(ctx); err != nil {
+func (uq *UserQuery) Exist(ctx context.Context) (bool, error) {
+	if err := uq.prepareQuery(ctx); err != nil {
 		return false, err
 	}
-	return nq.sqlExist(ctx)
+	return uq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (nq *NodeQuery) ExistX(ctx context.Context) bool {
-	exist, err := nq.Exist(ctx)
+func (uq *UserQuery) ExistX(ctx context.Context) bool {
+	exist, err := uq.Exist(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return exist
 }
 
-// Clone returns a duplicate of the NodeQuery builder, including all associated steps. It can be
+// Clone returns a duplicate of the UserQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (nq *NodeQuery) Clone() *NodeQuery {
-	if nq == nil {
+func (uq *UserQuery) Clone() *UserQuery {
+	if uq == nil {
 		return nil
 	}
-	return &NodeQuery{
-		config:          nq.config,
-		limit:           nq.limit,
-		offset:          nq.offset,
-		order:           append([]OrderFunc{}, nq.order...),
-		predicates:      append([]predicate.Node{}, nq.predicates...),
-		withParent:      nq.withParent.Clone(),
-		withChildren:    nq.withChildren.Clone(),
-		withGroups:      nq.withGroups.Clone(),
-		withPermissions: nq.withPermissions.Clone(),
-		withUsers:       nq.withUsers.Clone(),
+	return &UserQuery{
+		config:          uq.config,
+		limit:           uq.limit,
+		offset:          uq.offset,
+		order:           append([]OrderFunc{}, uq.order...),
+		predicates:      append([]predicate.User{}, uq.predicates...),
+		withParent:      uq.withParent.Clone(),
+		withChildren:    uq.withChildren.Clone(),
+		withGroups:      uq.withGroups.Clone(),
+		withNodes:       uq.withNodes.Clone(),
+		withPermissions: uq.withPermissions.Clone(),
 		// clone intermediate query.
-		sql:  nq.sql.Clone(),
-		path: nq.path,
+		sql:  uq.sql.Clone(),
+		path: uq.path,
 	}
 }
 
 // WithParent tells the query-builder to eager-load the nodes that are connected to
 // the "parent" edge. The optional arguments are used to configure the query builder of the edge.
-func (nq *NodeQuery) WithParent(opts ...func(*NodeQuery)) *NodeQuery {
-	query := &NodeQuery{config: nq.config}
+func (uq *UserQuery) WithParent(opts ...func(*UserQuery)) *UserQuery {
+	query := &UserQuery{config: uq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	nq.withParent = query
-	return nq
+	uq.withParent = query
+	return uq
 }
 
 // WithChildren tells the query-builder to eager-load the nodes that are connected to
 // the "children" edge. The optional arguments are used to configure the query builder of the edge.
-func (nq *NodeQuery) WithChildren(opts ...func(*NodeQuery)) *NodeQuery {
-	query := &NodeQuery{config: nq.config}
+func (uq *UserQuery) WithChildren(opts ...func(*UserQuery)) *UserQuery {
+	query := &UserQuery{config: uq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	nq.withChildren = query
-	return nq
+	uq.withChildren = query
+	return uq
 }
 
 // WithGroups tells the query-builder to eager-load the nodes that are connected to
 // the "groups" edge. The optional arguments are used to configure the query builder of the edge.
-func (nq *NodeQuery) WithGroups(opts ...func(*GroupQuery)) *NodeQuery {
-	query := &GroupQuery{config: nq.config}
+func (uq *UserQuery) WithGroups(opts ...func(*GroupQuery)) *UserQuery {
+	query := &GroupQuery{config: uq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	nq.withGroups = query
-	return nq
+	uq.withGroups = query
+	return uq
+}
+
+// WithNodes tells the query-builder to eager-load the nodes that are connected to
+// the "nodes" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithNodes(opts ...func(*NodeQuery)) *UserQuery {
+	query := &NodeQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withNodes = query
+	return uq
 }
 
 // WithPermissions tells the query-builder to eager-load the nodes that are connected to
 // the "permissions" edge. The optional arguments are used to configure the query builder of the edge.
-func (nq *NodeQuery) WithPermissions(opts ...func(*PermissionQuery)) *NodeQuery {
-	query := &PermissionQuery{config: nq.config}
+func (uq *UserQuery) WithPermissions(opts ...func(*PermissionQuery)) *UserQuery {
+	query := &PermissionQuery{config: uq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	nq.withPermissions = query
-	return nq
-}
-
-// WithUsers tells the query-builder to eager-load the nodes that are connected to
-// the "users" edge. The optional arguments are used to configure the query builder of the edge.
-func (nq *NodeQuery) WithUsers(opts ...func(*UserQuery)) *NodeQuery {
-	query := &UserQuery{config: nq.config}
-	for _, opt := range opts {
-		opt(query)
-	}
-	nq.withUsers = query
-	return nq
+	uq.withPermissions = query
+	return uq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -437,19 +437,19 @@ func (nq *NodeQuery) WithUsers(opts ...func(*UserQuery)) *NodeQuery {
 //		Count int `json:"count,omitempty"`
 //	}
 //
-//	client.Node.Query().
-//		GroupBy(node.FieldTenant).
+//	client.User.Query().
+//		GroupBy(user.FieldTenant).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 //
-func (nq *NodeQuery) GroupBy(field string, fields ...string) *NodeGroupBy {
-	group := &NodeGroupBy{config: nq.config}
+func (uq *UserQuery) GroupBy(field string, fields ...string) *UserGroupBy {
+	group := &UserGroupBy{config: uq.config}
 	group.fields = append([]string{field}, fields...)
 	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := nq.prepareQuery(ctx); err != nil {
+		if err := uq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		return nq.sqlQuery(ctx), nil
+		return uq.sqlQuery(ctx), nil
 	}
 	return group
 }
@@ -463,45 +463,45 @@ func (nq *NodeQuery) GroupBy(field string, fields ...string) *NodeGroupBy {
 //		Tenant string `json:"tenant,omitempty"`
 //	}
 //
-//	client.Node.Query().
-//		Select(node.FieldTenant).
+//	client.User.Query().
+//		Select(user.FieldTenant).
 //		Scan(ctx, &v)
 //
-func (nq *NodeQuery) Select(field string, fields ...string) *NodeSelect {
-	nq.fields = append([]string{field}, fields...)
-	return &NodeSelect{NodeQuery: nq}
+func (uq *UserQuery) Select(field string, fields ...string) *UserSelect {
+	uq.fields = append([]string{field}, fields...)
+	return &UserSelect{UserQuery: uq}
 }
 
-func (nq *NodeQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range nq.fields {
-		if !node.ValidColumn(f) {
+func (uq *UserQuery) prepareQuery(ctx context.Context) error {
+	for _, f := range uq.fields {
+		if !user.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
-	if nq.path != nil {
-		prev, err := nq.path(ctx)
+	if uq.path != nil {
+		prev, err := uq.path(ctx)
 		if err != nil {
 			return err
 		}
-		nq.sql = prev
+		uq.sql = prev
 	}
 	return nil
 }
 
-func (nq *NodeQuery) sqlAll(ctx context.Context) ([]*Node, error) {
+func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 	var (
-		nodes       = []*Node{}
-		_spec       = nq.querySpec()
+		nodes       = []*User{}
+		_spec       = uq.querySpec()
 		loadedTypes = [5]bool{
-			nq.withParent != nil,
-			nq.withChildren != nil,
-			nq.withGroups != nil,
-			nq.withPermissions != nil,
-			nq.withUsers != nil,
+			uq.withParent != nil,
+			uq.withChildren != nil,
+			uq.withGroups != nil,
+			uq.withNodes != nil,
+			uq.withPermissions != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
-		node := &Node{config: nq.config}
+		node := &User{config: uq.config}
 		nodes = append(nodes, node)
 		return node.scanValues(columns)
 	}
@@ -513,16 +513,16 @@ func (nq *NodeQuery) sqlAll(ctx context.Context) ([]*Node, error) {
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
-	if err := sqlgraph.QueryNodes(ctx, nq.driver, _spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, uq.driver, _spec); err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
 
-	if query := nq.withParent; query != nil {
+	if query := uq.withParent; query != nil {
 		ids := make([]int, 0, len(nodes))
-		nodeids := make(map[int][]*Node)
+		nodeids := make(map[int][]*User)
 		for i := range nodes {
 			fk := nodes[i].ParentID
 			if _, ok := nodeids[fk]; !ok {
@@ -530,7 +530,7 @@ func (nq *NodeQuery) sqlAll(ctx context.Context) ([]*Node, error) {
 			}
 			nodeids[fk] = append(nodeids[fk], nodes[i])
 		}
-		query.Where(node.IDIn(ids...))
+		query.Where(user.IDIn(ids...))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
@@ -546,16 +546,16 @@ func (nq *NodeQuery) sqlAll(ctx context.Context) ([]*Node, error) {
 		}
 	}
 
-	if query := nq.withChildren; query != nil {
+	if query := uq.withChildren; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[int]*Node)
+		nodeids := make(map[int]*User)
 		for i := range nodes {
 			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
-			nodes[i].Edges.Children = []*Node{}
+			nodes[i].Edges.Children = []*User{}
 		}
-		query.Where(predicate.Node(func(s *sql.Selector) {
-			s.Where(sql.InValues(node.ChildrenColumn, fks...))
+		query.Where(predicate.User(func(s *sql.Selector) {
+			s.Where(sql.InValues(user.ChildrenColumn, fks...))
 		}))
 		neighbors, err := query.All(ctx)
 		if err != nil {
@@ -571,9 +571,9 @@ func (nq *NodeQuery) sqlAll(ctx context.Context) ([]*Node, error) {
 		}
 	}
 
-	if query := nq.withGroups; query != nil {
+	if query := uq.withGroups; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		ids := make(map[int]*Node, len(nodes))
+		ids := make(map[int]*User, len(nodes))
 		for _, node := range nodes {
 			ids[node.ID] = node
 			fks = append(fks, node.ID)
@@ -581,16 +581,16 @@ func (nq *NodeQuery) sqlAll(ctx context.Context) ([]*Node, error) {
 		}
 		var (
 			edgeids []int
-			edges   = make(map[int][]*Node)
+			edges   = make(map[int][]*User)
 		)
 		_spec := &sqlgraph.EdgeQuerySpec{
 			Edge: &sqlgraph.EdgeSpec{
 				Inverse: true,
-				Table:   node.GroupsTable,
-				Columns: node.GroupsPrimaryKey,
+				Table:   user.GroupsTable,
+				Columns: user.GroupsPrimaryKey,
 			},
 			Predicate: func(s *sql.Selector) {
-				s.Where(sql.InValues(node.GroupsPrimaryKey[1], fks...))
+				s.Where(sql.InValues(user.GroupsPrimaryKey[1], fks...))
 			},
 			ScanValues: func() [2]interface{} {
 				return [2]interface{}{&sql.NullInt64{}, &sql.NullInt64{}}
@@ -617,7 +617,7 @@ func (nq *NodeQuery) sqlAll(ctx context.Context) ([]*Node, error) {
 				return nil
 			},
 		}
-		if err := sqlgraph.QueryEdges(ctx, nq.driver, _spec); err != nil {
+		if err := sqlgraph.QueryEdges(ctx, uq.driver, _spec); err != nil {
 			return nil, fmt.Errorf(`query edges "groups": %w`, err)
 		}
 		query.Where(group.IDIn(edgeids...))
@@ -636,26 +636,26 @@ func (nq *NodeQuery) sqlAll(ctx context.Context) ([]*Node, error) {
 		}
 	}
 
-	if query := nq.withPermissions; query != nil {
+	if query := uq.withNodes; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		ids := make(map[int]*Node, len(nodes))
+		ids := make(map[int]*User, len(nodes))
 		for _, node := range nodes {
 			ids[node.ID] = node
 			fks = append(fks, node.ID)
-			node.Edges.Permissions = []*Permission{}
+			node.Edges.Nodes = []*Node{}
 		}
 		var (
 			edgeids []int
-			edges   = make(map[int][]*Node)
+			edges   = make(map[int][]*User)
 		)
 		_spec := &sqlgraph.EdgeQuerySpec{
 			Edge: &sqlgraph.EdgeSpec{
-				Inverse: false,
-				Table:   node.PermissionsTable,
-				Columns: node.PermissionsPrimaryKey,
+				Inverse: true,
+				Table:   user.NodesTable,
+				Columns: user.NodesPrimaryKey,
 			},
 			Predicate: func(s *sql.Selector) {
-				s.Where(sql.InValues(node.PermissionsPrimaryKey[0], fks...))
+				s.Where(sql.InValues(user.NodesPrimaryKey[1], fks...))
 			},
 			ScanValues: func() [2]interface{} {
 				return [2]interface{}{&sql.NullInt64{}, &sql.NullInt64{}}
@@ -682,7 +682,72 @@ func (nq *NodeQuery) sqlAll(ctx context.Context) ([]*Node, error) {
 				return nil
 			},
 		}
-		if err := sqlgraph.QueryEdges(ctx, nq.driver, _spec); err != nil {
+		if err := sqlgraph.QueryEdges(ctx, uq.driver, _spec); err != nil {
+			return nil, fmt.Errorf(`query edges "nodes": %w`, err)
+		}
+		query.Where(node.IDIn(edgeids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := edges[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected "nodes" node returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Nodes = append(nodes[i].Edges.Nodes, n)
+			}
+		}
+	}
+
+	if query := uq.withPermissions; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		ids := make(map[int]*User, len(nodes))
+		for _, node := range nodes {
+			ids[node.ID] = node
+			fks = append(fks, node.ID)
+			node.Edges.Permissions = []*Permission{}
+		}
+		var (
+			edgeids []int
+			edges   = make(map[int][]*User)
+		)
+		_spec := &sqlgraph.EdgeQuerySpec{
+			Edge: &sqlgraph.EdgeSpec{
+				Inverse: true,
+				Table:   user.PermissionsTable,
+				Columns: user.PermissionsPrimaryKey,
+			},
+			Predicate: func(s *sql.Selector) {
+				s.Where(sql.InValues(user.PermissionsPrimaryKey[1], fks...))
+			},
+			ScanValues: func() [2]interface{} {
+				return [2]interface{}{&sql.NullInt64{}, &sql.NullInt64{}}
+			},
+			Assign: func(out, in interface{}) error {
+				eout, ok := out.(*sql.NullInt64)
+				if !ok || eout == nil {
+					return fmt.Errorf("unexpected id value for edge-out")
+				}
+				ein, ok := in.(*sql.NullInt64)
+				if !ok || ein == nil {
+					return fmt.Errorf("unexpected id value for edge-in")
+				}
+				outValue := int(eout.Int64)
+				inValue := int(ein.Int64)
+				node, ok := ids[outValue]
+				if !ok {
+					return fmt.Errorf("unexpected node id in edges: %v", outValue)
+				}
+				if _, ok := edges[inValue]; !ok {
+					edgeids = append(edgeids, inValue)
+				}
+				edges[inValue] = append(edges[inValue], node)
+				return nil
+			},
+		}
+		if err := sqlgraph.QueryEdges(ctx, uq.driver, _spec); err != nil {
 			return nil, fmt.Errorf(`query edges "permissions": %w`, err)
 		}
 		query.Where(permission.IDIn(edgeids...))
@@ -701,126 +766,61 @@ func (nq *NodeQuery) sqlAll(ctx context.Context) ([]*Node, error) {
 		}
 	}
 
-	if query := nq.withUsers; query != nil {
-		fks := make([]driver.Value, 0, len(nodes))
-		ids := make(map[int]*Node, len(nodes))
-		for _, node := range nodes {
-			ids[node.ID] = node
-			fks = append(fks, node.ID)
-			node.Edges.Users = []*User{}
-		}
-		var (
-			edgeids []int
-			edges   = make(map[int][]*Node)
-		)
-		_spec := &sqlgraph.EdgeQuerySpec{
-			Edge: &sqlgraph.EdgeSpec{
-				Inverse: false,
-				Table:   node.UsersTable,
-				Columns: node.UsersPrimaryKey,
-			},
-			Predicate: func(s *sql.Selector) {
-				s.Where(sql.InValues(node.UsersPrimaryKey[0], fks...))
-			},
-			ScanValues: func() [2]interface{} {
-				return [2]interface{}{&sql.NullInt64{}, &sql.NullInt64{}}
-			},
-			Assign: func(out, in interface{}) error {
-				eout, ok := out.(*sql.NullInt64)
-				if !ok || eout == nil {
-					return fmt.Errorf("unexpected id value for edge-out")
-				}
-				ein, ok := in.(*sql.NullInt64)
-				if !ok || ein == nil {
-					return fmt.Errorf("unexpected id value for edge-in")
-				}
-				outValue := int(eout.Int64)
-				inValue := int(ein.Int64)
-				node, ok := ids[outValue]
-				if !ok {
-					return fmt.Errorf("unexpected node id in edges: %v", outValue)
-				}
-				if _, ok := edges[inValue]; !ok {
-					edgeids = append(edgeids, inValue)
-				}
-				edges[inValue] = append(edges[inValue], node)
-				return nil
-			},
-		}
-		if err := sqlgraph.QueryEdges(ctx, nq.driver, _spec); err != nil {
-			return nil, fmt.Errorf(`query edges "users": %w`, err)
-		}
-		query.Where(user.IDIn(edgeids...))
-		neighbors, err := query.All(ctx)
-		if err != nil {
-			return nil, err
-		}
-		for _, n := range neighbors {
-			nodes, ok := edges[n.ID]
-			if !ok {
-				return nil, fmt.Errorf(`unexpected "users" node returned %v`, n.ID)
-			}
-			for i := range nodes {
-				nodes[i].Edges.Users = append(nodes[i].Edges.Users, n)
-			}
-		}
-	}
-
 	return nodes, nil
 }
 
-func (nq *NodeQuery) sqlCount(ctx context.Context) (int, error) {
-	_spec := nq.querySpec()
-	return sqlgraph.CountNodes(ctx, nq.driver, _spec)
+func (uq *UserQuery) sqlCount(ctx context.Context) (int, error) {
+	_spec := uq.querySpec()
+	return sqlgraph.CountNodes(ctx, uq.driver, _spec)
 }
 
-func (nq *NodeQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := nq.sqlCount(ctx)
+func (uq *UserQuery) sqlExist(ctx context.Context) (bool, error) {
+	n, err := uq.sqlCount(ctx)
 	if err != nil {
 		return false, fmt.Errorf("ent: check existence: %w", err)
 	}
 	return n > 0, nil
 }
 
-func (nq *NodeQuery) querySpec() *sqlgraph.QuerySpec {
+func (uq *UserQuery) querySpec() *sqlgraph.QuerySpec {
 	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
-			Table:   node.Table,
-			Columns: node.Columns,
+			Table:   user.Table,
+			Columns: user.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeInt,
-				Column: node.FieldID,
+				Column: user.FieldID,
 			},
 		},
-		From:   nq.sql,
+		From:   uq.sql,
 		Unique: true,
 	}
-	if unique := nq.unique; unique != nil {
+	if unique := uq.unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := nq.fields; len(fields) > 0 {
+	if fields := uq.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, node.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, user.FieldID)
 		for i := range fields {
-			if fields[i] != node.FieldID {
+			if fields[i] != user.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
 	}
-	if ps := nq.predicates; len(ps) > 0 {
+	if ps := uq.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if limit := nq.limit; limit != nil {
+	if limit := uq.limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := nq.offset; offset != nil {
+	if offset := uq.offset; offset != nil {
 		_spec.Offset = *offset
 	}
-	if ps := nq.order; len(ps) > 0 {
+	if ps := uq.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
@@ -830,33 +830,33 @@ func (nq *NodeQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (nq *NodeQuery) sqlQuery(ctx context.Context) *sql.Selector {
-	builder := sql.Dialect(nq.driver.Dialect())
-	t1 := builder.Table(node.Table)
-	selector := builder.Select(t1.Columns(node.Columns...)...).From(t1)
-	if nq.sql != nil {
-		selector = nq.sql
-		selector.Select(selector.Columns(node.Columns...)...)
+func (uq *UserQuery) sqlQuery(ctx context.Context) *sql.Selector {
+	builder := sql.Dialect(uq.driver.Dialect())
+	t1 := builder.Table(user.Table)
+	selector := builder.Select(t1.Columns(user.Columns...)...).From(t1)
+	if uq.sql != nil {
+		selector = uq.sql
+		selector.Select(selector.Columns(user.Columns...)...)
 	}
-	for _, p := range nq.predicates {
+	for _, p := range uq.predicates {
 		p(selector)
 	}
-	for _, p := range nq.order {
+	for _, p := range uq.order {
 		p(selector)
 	}
-	if offset := nq.offset; offset != nil {
+	if offset := uq.offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := nq.limit; limit != nil {
+	if limit := uq.limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
 }
 
-// NodeGroupBy is the group-by builder for Node entities.
-type NodeGroupBy struct {
+// UserGroupBy is the group-by builder for User entities.
+type UserGroupBy struct {
 	config
 	fields []string
 	fns    []AggregateFunc
@@ -866,44 +866,44 @@ type NodeGroupBy struct {
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (ngb *NodeGroupBy) Aggregate(fns ...AggregateFunc) *NodeGroupBy {
-	ngb.fns = append(ngb.fns, fns...)
-	return ngb
+func (ugb *UserGroupBy) Aggregate(fns ...AggregateFunc) *UserGroupBy {
+	ugb.fns = append(ugb.fns, fns...)
+	return ugb
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (ngb *NodeGroupBy) Scan(ctx context.Context, v interface{}) error {
-	query, err := ngb.path(ctx)
+func (ugb *UserGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := ugb.path(ctx)
 	if err != nil {
 		return err
 	}
-	ngb.sql = query
-	return ngb.sqlScan(ctx, v)
+	ugb.sql = query
+	return ugb.sqlScan(ctx, v)
 }
 
 // ScanX is like Scan, but panics if an error occurs.
-func (ngb *NodeGroupBy) ScanX(ctx context.Context, v interface{}) {
-	if err := ngb.Scan(ctx, v); err != nil {
+func (ugb *UserGroupBy) ScanX(ctx context.Context, v interface{}) {
+	if err := ugb.Scan(ctx, v); err != nil {
 		panic(err)
 	}
 }
 
 // Strings returns list of strings from group-by.
 // It is only allowed when executing a group-by query with one field.
-func (ngb *NodeGroupBy) Strings(ctx context.Context) ([]string, error) {
-	if len(ngb.fields) > 1 {
-		return nil, errors.New("ent: NodeGroupBy.Strings is not achievable when grouping more than 1 field")
+func (ugb *UserGroupBy) Strings(ctx context.Context) ([]string, error) {
+	if len(ugb.fields) > 1 {
+		return nil, errors.New("ent: UserGroupBy.Strings is not achievable when grouping more than 1 field")
 	}
 	var v []string
-	if err := ngb.Scan(ctx, &v); err != nil {
+	if err := ugb.Scan(ctx, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
 }
 
 // StringsX is like Strings, but panics if an error occurs.
-func (ngb *NodeGroupBy) StringsX(ctx context.Context) []string {
-	v, err := ngb.Strings(ctx)
+func (ugb *UserGroupBy) StringsX(ctx context.Context) []string {
+	v, err := ugb.Strings(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -912,25 +912,25 @@ func (ngb *NodeGroupBy) StringsX(ctx context.Context) []string {
 
 // String returns a single string from a group-by query.
 // It is only allowed when executing a group-by query with one field.
-func (ngb *NodeGroupBy) String(ctx context.Context) (_ string, err error) {
+func (ugb *UserGroupBy) String(ctx context.Context) (_ string, err error) {
 	var v []string
-	if v, err = ngb.Strings(ctx); err != nil {
+	if v, err = ugb.Strings(ctx); err != nil {
 		return
 	}
 	switch len(v) {
 	case 1:
 		return v[0], nil
 	case 0:
-		err = &NotFoundError{node.Label}
+		err = &NotFoundError{user.Label}
 	default:
-		err = fmt.Errorf("ent: NodeGroupBy.Strings returned %d results when one was expected", len(v))
+		err = fmt.Errorf("ent: UserGroupBy.Strings returned %d results when one was expected", len(v))
 	}
 	return
 }
 
 // StringX is like String, but panics if an error occurs.
-func (ngb *NodeGroupBy) StringX(ctx context.Context) string {
-	v, err := ngb.String(ctx)
+func (ugb *UserGroupBy) StringX(ctx context.Context) string {
+	v, err := ugb.String(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -939,20 +939,20 @@ func (ngb *NodeGroupBy) StringX(ctx context.Context) string {
 
 // Ints returns list of ints from group-by.
 // It is only allowed when executing a group-by query with one field.
-func (ngb *NodeGroupBy) Ints(ctx context.Context) ([]int, error) {
-	if len(ngb.fields) > 1 {
-		return nil, errors.New("ent: NodeGroupBy.Ints is not achievable when grouping more than 1 field")
+func (ugb *UserGroupBy) Ints(ctx context.Context) ([]int, error) {
+	if len(ugb.fields) > 1 {
+		return nil, errors.New("ent: UserGroupBy.Ints is not achievable when grouping more than 1 field")
 	}
 	var v []int
-	if err := ngb.Scan(ctx, &v); err != nil {
+	if err := ugb.Scan(ctx, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
 }
 
 // IntsX is like Ints, but panics if an error occurs.
-func (ngb *NodeGroupBy) IntsX(ctx context.Context) []int {
-	v, err := ngb.Ints(ctx)
+func (ugb *UserGroupBy) IntsX(ctx context.Context) []int {
+	v, err := ugb.Ints(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -961,25 +961,25 @@ func (ngb *NodeGroupBy) IntsX(ctx context.Context) []int {
 
 // Int returns a single int from a group-by query.
 // It is only allowed when executing a group-by query with one field.
-func (ngb *NodeGroupBy) Int(ctx context.Context) (_ int, err error) {
+func (ugb *UserGroupBy) Int(ctx context.Context) (_ int, err error) {
 	var v []int
-	if v, err = ngb.Ints(ctx); err != nil {
+	if v, err = ugb.Ints(ctx); err != nil {
 		return
 	}
 	switch len(v) {
 	case 1:
 		return v[0], nil
 	case 0:
-		err = &NotFoundError{node.Label}
+		err = &NotFoundError{user.Label}
 	default:
-		err = fmt.Errorf("ent: NodeGroupBy.Ints returned %d results when one was expected", len(v))
+		err = fmt.Errorf("ent: UserGroupBy.Ints returned %d results when one was expected", len(v))
 	}
 	return
 }
 
 // IntX is like Int, but panics if an error occurs.
-func (ngb *NodeGroupBy) IntX(ctx context.Context) int {
-	v, err := ngb.Int(ctx)
+func (ugb *UserGroupBy) IntX(ctx context.Context) int {
+	v, err := ugb.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -988,20 +988,20 @@ func (ngb *NodeGroupBy) IntX(ctx context.Context) int {
 
 // Float64s returns list of float64s from group-by.
 // It is only allowed when executing a group-by query with one field.
-func (ngb *NodeGroupBy) Float64s(ctx context.Context) ([]float64, error) {
-	if len(ngb.fields) > 1 {
-		return nil, errors.New("ent: NodeGroupBy.Float64s is not achievable when grouping more than 1 field")
+func (ugb *UserGroupBy) Float64s(ctx context.Context) ([]float64, error) {
+	if len(ugb.fields) > 1 {
+		return nil, errors.New("ent: UserGroupBy.Float64s is not achievable when grouping more than 1 field")
 	}
 	var v []float64
-	if err := ngb.Scan(ctx, &v); err != nil {
+	if err := ugb.Scan(ctx, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
 }
 
 // Float64sX is like Float64s, but panics if an error occurs.
-func (ngb *NodeGroupBy) Float64sX(ctx context.Context) []float64 {
-	v, err := ngb.Float64s(ctx)
+func (ugb *UserGroupBy) Float64sX(ctx context.Context) []float64 {
+	v, err := ugb.Float64s(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -1010,25 +1010,25 @@ func (ngb *NodeGroupBy) Float64sX(ctx context.Context) []float64 {
 
 // Float64 returns a single float64 from a group-by query.
 // It is only allowed when executing a group-by query with one field.
-func (ngb *NodeGroupBy) Float64(ctx context.Context) (_ float64, err error) {
+func (ugb *UserGroupBy) Float64(ctx context.Context) (_ float64, err error) {
 	var v []float64
-	if v, err = ngb.Float64s(ctx); err != nil {
+	if v, err = ugb.Float64s(ctx); err != nil {
 		return
 	}
 	switch len(v) {
 	case 1:
 		return v[0], nil
 	case 0:
-		err = &NotFoundError{node.Label}
+		err = &NotFoundError{user.Label}
 	default:
-		err = fmt.Errorf("ent: NodeGroupBy.Float64s returned %d results when one was expected", len(v))
+		err = fmt.Errorf("ent: UserGroupBy.Float64s returned %d results when one was expected", len(v))
 	}
 	return
 }
 
 // Float64X is like Float64, but panics if an error occurs.
-func (ngb *NodeGroupBy) Float64X(ctx context.Context) float64 {
-	v, err := ngb.Float64(ctx)
+func (ugb *UserGroupBy) Float64X(ctx context.Context) float64 {
+	v, err := ugb.Float64(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -1037,20 +1037,20 @@ func (ngb *NodeGroupBy) Float64X(ctx context.Context) float64 {
 
 // Bools returns list of bools from group-by.
 // It is only allowed when executing a group-by query with one field.
-func (ngb *NodeGroupBy) Bools(ctx context.Context) ([]bool, error) {
-	if len(ngb.fields) > 1 {
-		return nil, errors.New("ent: NodeGroupBy.Bools is not achievable when grouping more than 1 field")
+func (ugb *UserGroupBy) Bools(ctx context.Context) ([]bool, error) {
+	if len(ugb.fields) > 1 {
+		return nil, errors.New("ent: UserGroupBy.Bools is not achievable when grouping more than 1 field")
 	}
 	var v []bool
-	if err := ngb.Scan(ctx, &v); err != nil {
+	if err := ugb.Scan(ctx, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
 }
 
 // BoolsX is like Bools, but panics if an error occurs.
-func (ngb *NodeGroupBy) BoolsX(ctx context.Context) []bool {
-	v, err := ngb.Bools(ctx)
+func (ugb *UserGroupBy) BoolsX(ctx context.Context) []bool {
+	v, err := ugb.Bools(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -1059,98 +1059,98 @@ func (ngb *NodeGroupBy) BoolsX(ctx context.Context) []bool {
 
 // Bool returns a single bool from a group-by query.
 // It is only allowed when executing a group-by query with one field.
-func (ngb *NodeGroupBy) Bool(ctx context.Context) (_ bool, err error) {
+func (ugb *UserGroupBy) Bool(ctx context.Context) (_ bool, err error) {
 	var v []bool
-	if v, err = ngb.Bools(ctx); err != nil {
+	if v, err = ugb.Bools(ctx); err != nil {
 		return
 	}
 	switch len(v) {
 	case 1:
 		return v[0], nil
 	case 0:
-		err = &NotFoundError{node.Label}
+		err = &NotFoundError{user.Label}
 	default:
-		err = fmt.Errorf("ent: NodeGroupBy.Bools returned %d results when one was expected", len(v))
+		err = fmt.Errorf("ent: UserGroupBy.Bools returned %d results when one was expected", len(v))
 	}
 	return
 }
 
 // BoolX is like Bool, but panics if an error occurs.
-func (ngb *NodeGroupBy) BoolX(ctx context.Context) bool {
-	v, err := ngb.Bool(ctx)
+func (ugb *UserGroupBy) BoolX(ctx context.Context) bool {
+	v, err := ugb.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return v
 }
 
-func (ngb *NodeGroupBy) sqlScan(ctx context.Context, v interface{}) error {
-	for _, f := range ngb.fields {
-		if !node.ValidColumn(f) {
+func (ugb *UserGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+	for _, f := range ugb.fields {
+		if !user.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
 		}
 	}
-	selector := ngb.sqlQuery()
+	selector := ugb.sqlQuery()
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := ngb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := ugb.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (ngb *NodeGroupBy) sqlQuery() *sql.Selector {
-	selector := ngb.sql
-	columns := make([]string, 0, len(ngb.fields)+len(ngb.fns))
-	columns = append(columns, ngb.fields...)
-	for _, fn := range ngb.fns {
+func (ugb *UserGroupBy) sqlQuery() *sql.Selector {
+	selector := ugb.sql
+	columns := make([]string, 0, len(ugb.fields)+len(ugb.fns))
+	columns = append(columns, ugb.fields...)
+	for _, fn := range ugb.fns {
 		columns = append(columns, fn(selector))
 	}
-	return selector.Select(columns...).GroupBy(ngb.fields...)
+	return selector.Select(columns...).GroupBy(ugb.fields...)
 }
 
-// NodeSelect is the builder for selecting fields of Node entities.
-type NodeSelect struct {
-	*NodeQuery
+// UserSelect is the builder for selecting fields of User entities.
+type UserSelect struct {
+	*UserQuery
 	// intermediate query (i.e. traversal path).
 	sql *sql.Selector
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (ns *NodeSelect) Scan(ctx context.Context, v interface{}) error {
-	if err := ns.prepareQuery(ctx); err != nil {
+func (us *UserSelect) Scan(ctx context.Context, v interface{}) error {
+	if err := us.prepareQuery(ctx); err != nil {
 		return err
 	}
-	ns.sql = ns.NodeQuery.sqlQuery(ctx)
-	return ns.sqlScan(ctx, v)
+	us.sql = us.UserQuery.sqlQuery(ctx)
+	return us.sqlScan(ctx, v)
 }
 
 // ScanX is like Scan, but panics if an error occurs.
-func (ns *NodeSelect) ScanX(ctx context.Context, v interface{}) {
-	if err := ns.Scan(ctx, v); err != nil {
+func (us *UserSelect) ScanX(ctx context.Context, v interface{}) {
+	if err := us.Scan(ctx, v); err != nil {
 		panic(err)
 	}
 }
 
 // Strings returns list of strings from a selector. It is only allowed when selecting one field.
-func (ns *NodeSelect) Strings(ctx context.Context) ([]string, error) {
-	if len(ns.fields) > 1 {
-		return nil, errors.New("ent: NodeSelect.Strings is not achievable when selecting more than 1 field")
+func (us *UserSelect) Strings(ctx context.Context) ([]string, error) {
+	if len(us.fields) > 1 {
+		return nil, errors.New("ent: UserSelect.Strings is not achievable when selecting more than 1 field")
 	}
 	var v []string
-	if err := ns.Scan(ctx, &v); err != nil {
+	if err := us.Scan(ctx, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
 }
 
 // StringsX is like Strings, but panics if an error occurs.
-func (ns *NodeSelect) StringsX(ctx context.Context) []string {
-	v, err := ns.Strings(ctx)
+func (us *UserSelect) StringsX(ctx context.Context) []string {
+	v, err := us.Strings(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -1158,25 +1158,25 @@ func (ns *NodeSelect) StringsX(ctx context.Context) []string {
 }
 
 // String returns a single string from a selector. It is only allowed when selecting one field.
-func (ns *NodeSelect) String(ctx context.Context) (_ string, err error) {
+func (us *UserSelect) String(ctx context.Context) (_ string, err error) {
 	var v []string
-	if v, err = ns.Strings(ctx); err != nil {
+	if v, err = us.Strings(ctx); err != nil {
 		return
 	}
 	switch len(v) {
 	case 1:
 		return v[0], nil
 	case 0:
-		err = &NotFoundError{node.Label}
+		err = &NotFoundError{user.Label}
 	default:
-		err = fmt.Errorf("ent: NodeSelect.Strings returned %d results when one was expected", len(v))
+		err = fmt.Errorf("ent: UserSelect.Strings returned %d results when one was expected", len(v))
 	}
 	return
 }
 
 // StringX is like String, but panics if an error occurs.
-func (ns *NodeSelect) StringX(ctx context.Context) string {
-	v, err := ns.String(ctx)
+func (us *UserSelect) StringX(ctx context.Context) string {
+	v, err := us.String(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -1184,20 +1184,20 @@ func (ns *NodeSelect) StringX(ctx context.Context) string {
 }
 
 // Ints returns list of ints from a selector. It is only allowed when selecting one field.
-func (ns *NodeSelect) Ints(ctx context.Context) ([]int, error) {
-	if len(ns.fields) > 1 {
-		return nil, errors.New("ent: NodeSelect.Ints is not achievable when selecting more than 1 field")
+func (us *UserSelect) Ints(ctx context.Context) ([]int, error) {
+	if len(us.fields) > 1 {
+		return nil, errors.New("ent: UserSelect.Ints is not achievable when selecting more than 1 field")
 	}
 	var v []int
-	if err := ns.Scan(ctx, &v); err != nil {
+	if err := us.Scan(ctx, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
 }
 
 // IntsX is like Ints, but panics if an error occurs.
-func (ns *NodeSelect) IntsX(ctx context.Context) []int {
-	v, err := ns.Ints(ctx)
+func (us *UserSelect) IntsX(ctx context.Context) []int {
+	v, err := us.Ints(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -1205,25 +1205,25 @@ func (ns *NodeSelect) IntsX(ctx context.Context) []int {
 }
 
 // Int returns a single int from a selector. It is only allowed when selecting one field.
-func (ns *NodeSelect) Int(ctx context.Context) (_ int, err error) {
+func (us *UserSelect) Int(ctx context.Context) (_ int, err error) {
 	var v []int
-	if v, err = ns.Ints(ctx); err != nil {
+	if v, err = us.Ints(ctx); err != nil {
 		return
 	}
 	switch len(v) {
 	case 1:
 		return v[0], nil
 	case 0:
-		err = &NotFoundError{node.Label}
+		err = &NotFoundError{user.Label}
 	default:
-		err = fmt.Errorf("ent: NodeSelect.Ints returned %d results when one was expected", len(v))
+		err = fmt.Errorf("ent: UserSelect.Ints returned %d results when one was expected", len(v))
 	}
 	return
 }
 
 // IntX is like Int, but panics if an error occurs.
-func (ns *NodeSelect) IntX(ctx context.Context) int {
-	v, err := ns.Int(ctx)
+func (us *UserSelect) IntX(ctx context.Context) int {
+	v, err := us.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -1231,20 +1231,20 @@ func (ns *NodeSelect) IntX(ctx context.Context) int {
 }
 
 // Float64s returns list of float64s from a selector. It is only allowed when selecting one field.
-func (ns *NodeSelect) Float64s(ctx context.Context) ([]float64, error) {
-	if len(ns.fields) > 1 {
-		return nil, errors.New("ent: NodeSelect.Float64s is not achievable when selecting more than 1 field")
+func (us *UserSelect) Float64s(ctx context.Context) ([]float64, error) {
+	if len(us.fields) > 1 {
+		return nil, errors.New("ent: UserSelect.Float64s is not achievable when selecting more than 1 field")
 	}
 	var v []float64
-	if err := ns.Scan(ctx, &v); err != nil {
+	if err := us.Scan(ctx, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
 }
 
 // Float64sX is like Float64s, but panics if an error occurs.
-func (ns *NodeSelect) Float64sX(ctx context.Context) []float64 {
-	v, err := ns.Float64s(ctx)
+func (us *UserSelect) Float64sX(ctx context.Context) []float64 {
+	v, err := us.Float64s(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -1252,25 +1252,25 @@ func (ns *NodeSelect) Float64sX(ctx context.Context) []float64 {
 }
 
 // Float64 returns a single float64 from a selector. It is only allowed when selecting one field.
-func (ns *NodeSelect) Float64(ctx context.Context) (_ float64, err error) {
+func (us *UserSelect) Float64(ctx context.Context) (_ float64, err error) {
 	var v []float64
-	if v, err = ns.Float64s(ctx); err != nil {
+	if v, err = us.Float64s(ctx); err != nil {
 		return
 	}
 	switch len(v) {
 	case 1:
 		return v[0], nil
 	case 0:
-		err = &NotFoundError{node.Label}
+		err = &NotFoundError{user.Label}
 	default:
-		err = fmt.Errorf("ent: NodeSelect.Float64s returned %d results when one was expected", len(v))
+		err = fmt.Errorf("ent: UserSelect.Float64s returned %d results when one was expected", len(v))
 	}
 	return
 }
 
 // Float64X is like Float64, but panics if an error occurs.
-func (ns *NodeSelect) Float64X(ctx context.Context) float64 {
-	v, err := ns.Float64(ctx)
+func (us *UserSelect) Float64X(ctx context.Context) float64 {
+	v, err := us.Float64(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -1278,20 +1278,20 @@ func (ns *NodeSelect) Float64X(ctx context.Context) float64 {
 }
 
 // Bools returns list of bools from a selector. It is only allowed when selecting one field.
-func (ns *NodeSelect) Bools(ctx context.Context) ([]bool, error) {
-	if len(ns.fields) > 1 {
-		return nil, errors.New("ent: NodeSelect.Bools is not achievable when selecting more than 1 field")
+func (us *UserSelect) Bools(ctx context.Context) ([]bool, error) {
+	if len(us.fields) > 1 {
+		return nil, errors.New("ent: UserSelect.Bools is not achievable when selecting more than 1 field")
 	}
 	var v []bool
-	if err := ns.Scan(ctx, &v); err != nil {
+	if err := us.Scan(ctx, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
 }
 
 // BoolsX is like Bools, but panics if an error occurs.
-func (ns *NodeSelect) BoolsX(ctx context.Context) []bool {
-	v, err := ns.Bools(ctx)
+func (us *UserSelect) BoolsX(ctx context.Context) []bool {
+	v, err := us.Bools(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -1299,43 +1299,43 @@ func (ns *NodeSelect) BoolsX(ctx context.Context) []bool {
 }
 
 // Bool returns a single bool from a selector. It is only allowed when selecting one field.
-func (ns *NodeSelect) Bool(ctx context.Context) (_ bool, err error) {
+func (us *UserSelect) Bool(ctx context.Context) (_ bool, err error) {
 	var v []bool
-	if v, err = ns.Bools(ctx); err != nil {
+	if v, err = us.Bools(ctx); err != nil {
 		return
 	}
 	switch len(v) {
 	case 1:
 		return v[0], nil
 	case 0:
-		err = &NotFoundError{node.Label}
+		err = &NotFoundError{user.Label}
 	default:
-		err = fmt.Errorf("ent: NodeSelect.Bools returned %d results when one was expected", len(v))
+		err = fmt.Errorf("ent: UserSelect.Bools returned %d results when one was expected", len(v))
 	}
 	return
 }
 
 // BoolX is like Bool, but panics if an error occurs.
-func (ns *NodeSelect) BoolX(ctx context.Context) bool {
-	v, err := ns.Bool(ctx)
+func (us *UserSelect) BoolX(ctx context.Context) bool {
+	v, err := us.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return v
 }
 
-func (ns *NodeSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (us *UserSelect) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
-	query, args := ns.sqlQuery().Query()
-	if err := ns.driver.Query(ctx, query, args, rows); err != nil {
+	query, args := us.sqlQuery().Query()
+	if err := us.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (ns *NodeSelect) sqlQuery() sql.Querier {
-	selector := ns.sql
-	selector.Select(selector.Columns(ns.fields...)...)
+func (us *UserSelect) sqlQuery() sql.Querier {
+	selector := us.sql
+	selector.Select(selector.Columns(us.fields...)...)
 	return selector
 }

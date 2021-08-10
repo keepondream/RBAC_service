@@ -13,6 +13,7 @@ import (
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/group"
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/node"
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/predicate"
+	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/user"
 )
 
 // GroupUpdate is the builder for updating Group entities.
@@ -46,6 +47,27 @@ func (gu *GroupUpdate) SetType(s string) *GroupUpdate {
 	return gu
 }
 
+// SetParentID sets the "parent_id" field.
+func (gu *GroupUpdate) SetParentID(i int) *GroupUpdate {
+	gu.mutation.ResetParentID()
+	gu.mutation.SetParentID(i)
+	return gu
+}
+
+// SetNillableParentID sets the "parent_id" field if the given value is not nil.
+func (gu *GroupUpdate) SetNillableParentID(i *int) *GroupUpdate {
+	if i != nil {
+		gu.SetParentID(*i)
+	}
+	return gu
+}
+
+// ClearParentID clears the value of the "parent_id" field.
+func (gu *GroupUpdate) ClearParentID() *GroupUpdate {
+	gu.mutation.ClearParentID()
+	return gu
+}
+
 // SetData sets the "data" field.
 func (gu *GroupUpdate) SetData(i *interface{}) *GroupUpdate {
 	gu.mutation.SetData(i)
@@ -72,6 +94,26 @@ func (gu *GroupUpdate) SetUpdatedAt(t time.Time) *GroupUpdate {
 	return gu
 }
 
+// SetParent sets the "parent" edge to the Group entity.
+func (gu *GroupUpdate) SetParent(g *Group) *GroupUpdate {
+	return gu.SetParentID(g.ID)
+}
+
+// AddChildIDs adds the "children" edge to the Group entity by IDs.
+func (gu *GroupUpdate) AddChildIDs(ids ...int) *GroupUpdate {
+	gu.mutation.AddChildIDs(ids...)
+	return gu
+}
+
+// AddChildren adds the "children" edges to the Group entity.
+func (gu *GroupUpdate) AddChildren(g ...*Group) *GroupUpdate {
+	ids := make([]int, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return gu.AddChildIDs(ids...)
+}
+
 // AddNodeIDs adds the "nodes" edge to the Node entity by IDs.
 func (gu *GroupUpdate) AddNodeIDs(ids ...int) *GroupUpdate {
 	gu.mutation.AddNodeIDs(ids...)
@@ -87,9 +129,51 @@ func (gu *GroupUpdate) AddNodes(n ...*Node) *GroupUpdate {
 	return gu.AddNodeIDs(ids...)
 }
 
+// AddUserIDs adds the "users" edge to the User entity by IDs.
+func (gu *GroupUpdate) AddUserIDs(ids ...int) *GroupUpdate {
+	gu.mutation.AddUserIDs(ids...)
+	return gu
+}
+
+// AddUsers adds the "users" edges to the User entity.
+func (gu *GroupUpdate) AddUsers(u ...*User) *GroupUpdate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return gu.AddUserIDs(ids...)
+}
+
 // Mutation returns the GroupMutation object of the builder.
 func (gu *GroupUpdate) Mutation() *GroupMutation {
 	return gu.mutation
+}
+
+// ClearParent clears the "parent" edge to the Group entity.
+func (gu *GroupUpdate) ClearParent() *GroupUpdate {
+	gu.mutation.ClearParent()
+	return gu
+}
+
+// ClearChildren clears all "children" edges to the Group entity.
+func (gu *GroupUpdate) ClearChildren() *GroupUpdate {
+	gu.mutation.ClearChildren()
+	return gu
+}
+
+// RemoveChildIDs removes the "children" edge to Group entities by IDs.
+func (gu *GroupUpdate) RemoveChildIDs(ids ...int) *GroupUpdate {
+	gu.mutation.RemoveChildIDs(ids...)
+	return gu
+}
+
+// RemoveChildren removes "children" edges to Group entities.
+func (gu *GroupUpdate) RemoveChildren(g ...*Group) *GroupUpdate {
+	ids := make([]int, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return gu.RemoveChildIDs(ids...)
 }
 
 // ClearNodes clears all "nodes" edges to the Node entity.
@@ -111,6 +195,27 @@ func (gu *GroupUpdate) RemoveNodes(n ...*Node) *GroupUpdate {
 		ids[i] = n[i].ID
 	}
 	return gu.RemoveNodeIDs(ids...)
+}
+
+// ClearUsers clears all "users" edges to the User entity.
+func (gu *GroupUpdate) ClearUsers() *GroupUpdate {
+	gu.mutation.ClearUsers()
+	return gu
+}
+
+// RemoveUserIDs removes the "users" edge to User entities by IDs.
+func (gu *GroupUpdate) RemoveUserIDs(ids ...int) *GroupUpdate {
+	gu.mutation.RemoveUserIDs(ids...)
+	return gu
+}
+
+// RemoveUsers removes "users" edges to User entities.
+func (gu *GroupUpdate) RemoveUsers(u ...*User) *GroupUpdate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return gu.RemoveUserIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -259,6 +364,95 @@ func (gu *GroupUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: group.FieldUpdatedAt,
 		})
 	}
+	if gu.mutation.ParentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   group.ParentTable,
+			Columns: []string{group.ParentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: group.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gu.mutation.ParentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   group.ParentTable,
+			Columns: []string{group.ParentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: group.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if gu.mutation.ChildrenCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.ChildrenTable,
+			Columns: []string{group.ChildrenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: group.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gu.mutation.RemovedChildrenIDs(); len(nodes) > 0 && !gu.mutation.ChildrenCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.ChildrenTable,
+			Columns: []string{group.ChildrenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: group.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gu.mutation.ChildrenIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.ChildrenTable,
+			Columns: []string{group.ChildrenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: group.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if gu.mutation.NodesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
@@ -313,6 +507,60 @@ func (gu *GroupUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if gu.mutation.UsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   group.UsersTable,
+			Columns: group.UsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gu.mutation.RemovedUsersIDs(); len(nodes) > 0 && !gu.mutation.UsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   group.UsersTable,
+			Columns: group.UsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gu.mutation.UsersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   group.UsersTable,
+			Columns: group.UsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, gu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{group.Label}
@@ -350,6 +598,27 @@ func (guo *GroupUpdateOne) SetType(s string) *GroupUpdateOne {
 	return guo
 }
 
+// SetParentID sets the "parent_id" field.
+func (guo *GroupUpdateOne) SetParentID(i int) *GroupUpdateOne {
+	guo.mutation.ResetParentID()
+	guo.mutation.SetParentID(i)
+	return guo
+}
+
+// SetNillableParentID sets the "parent_id" field if the given value is not nil.
+func (guo *GroupUpdateOne) SetNillableParentID(i *int) *GroupUpdateOne {
+	if i != nil {
+		guo.SetParentID(*i)
+	}
+	return guo
+}
+
+// ClearParentID clears the value of the "parent_id" field.
+func (guo *GroupUpdateOne) ClearParentID() *GroupUpdateOne {
+	guo.mutation.ClearParentID()
+	return guo
+}
+
 // SetData sets the "data" field.
 func (guo *GroupUpdateOne) SetData(i *interface{}) *GroupUpdateOne {
 	guo.mutation.SetData(i)
@@ -376,6 +645,26 @@ func (guo *GroupUpdateOne) SetUpdatedAt(t time.Time) *GroupUpdateOne {
 	return guo
 }
 
+// SetParent sets the "parent" edge to the Group entity.
+func (guo *GroupUpdateOne) SetParent(g *Group) *GroupUpdateOne {
+	return guo.SetParentID(g.ID)
+}
+
+// AddChildIDs adds the "children" edge to the Group entity by IDs.
+func (guo *GroupUpdateOne) AddChildIDs(ids ...int) *GroupUpdateOne {
+	guo.mutation.AddChildIDs(ids...)
+	return guo
+}
+
+// AddChildren adds the "children" edges to the Group entity.
+func (guo *GroupUpdateOne) AddChildren(g ...*Group) *GroupUpdateOne {
+	ids := make([]int, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return guo.AddChildIDs(ids...)
+}
+
 // AddNodeIDs adds the "nodes" edge to the Node entity by IDs.
 func (guo *GroupUpdateOne) AddNodeIDs(ids ...int) *GroupUpdateOne {
 	guo.mutation.AddNodeIDs(ids...)
@@ -391,9 +680,51 @@ func (guo *GroupUpdateOne) AddNodes(n ...*Node) *GroupUpdateOne {
 	return guo.AddNodeIDs(ids...)
 }
 
+// AddUserIDs adds the "users" edge to the User entity by IDs.
+func (guo *GroupUpdateOne) AddUserIDs(ids ...int) *GroupUpdateOne {
+	guo.mutation.AddUserIDs(ids...)
+	return guo
+}
+
+// AddUsers adds the "users" edges to the User entity.
+func (guo *GroupUpdateOne) AddUsers(u ...*User) *GroupUpdateOne {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return guo.AddUserIDs(ids...)
+}
+
 // Mutation returns the GroupMutation object of the builder.
 func (guo *GroupUpdateOne) Mutation() *GroupMutation {
 	return guo.mutation
+}
+
+// ClearParent clears the "parent" edge to the Group entity.
+func (guo *GroupUpdateOne) ClearParent() *GroupUpdateOne {
+	guo.mutation.ClearParent()
+	return guo
+}
+
+// ClearChildren clears all "children" edges to the Group entity.
+func (guo *GroupUpdateOne) ClearChildren() *GroupUpdateOne {
+	guo.mutation.ClearChildren()
+	return guo
+}
+
+// RemoveChildIDs removes the "children" edge to Group entities by IDs.
+func (guo *GroupUpdateOne) RemoveChildIDs(ids ...int) *GroupUpdateOne {
+	guo.mutation.RemoveChildIDs(ids...)
+	return guo
+}
+
+// RemoveChildren removes "children" edges to Group entities.
+func (guo *GroupUpdateOne) RemoveChildren(g ...*Group) *GroupUpdateOne {
+	ids := make([]int, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return guo.RemoveChildIDs(ids...)
 }
 
 // ClearNodes clears all "nodes" edges to the Node entity.
@@ -415,6 +746,27 @@ func (guo *GroupUpdateOne) RemoveNodes(n ...*Node) *GroupUpdateOne {
 		ids[i] = n[i].ID
 	}
 	return guo.RemoveNodeIDs(ids...)
+}
+
+// ClearUsers clears all "users" edges to the User entity.
+func (guo *GroupUpdateOne) ClearUsers() *GroupUpdateOne {
+	guo.mutation.ClearUsers()
+	return guo
+}
+
+// RemoveUserIDs removes the "users" edge to User entities by IDs.
+func (guo *GroupUpdateOne) RemoveUserIDs(ids ...int) *GroupUpdateOne {
+	guo.mutation.RemoveUserIDs(ids...)
+	return guo
+}
+
+// RemoveUsers removes "users" edges to User entities.
+func (guo *GroupUpdateOne) RemoveUsers(u ...*User) *GroupUpdateOne {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return guo.RemoveUserIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -587,6 +939,95 @@ func (guo *GroupUpdateOne) sqlSave(ctx context.Context) (_node *Group, err error
 			Column: group.FieldUpdatedAt,
 		})
 	}
+	if guo.mutation.ParentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   group.ParentTable,
+			Columns: []string{group.ParentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: group.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := guo.mutation.ParentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   group.ParentTable,
+			Columns: []string{group.ParentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: group.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if guo.mutation.ChildrenCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.ChildrenTable,
+			Columns: []string{group.ChildrenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: group.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := guo.mutation.RemovedChildrenIDs(); len(nodes) > 0 && !guo.mutation.ChildrenCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.ChildrenTable,
+			Columns: []string{group.ChildrenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: group.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := guo.mutation.ChildrenIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.ChildrenTable,
+			Columns: []string{group.ChildrenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: group.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if guo.mutation.NodesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
@@ -633,6 +1074,60 @@ func (guo *GroupUpdateOne) sqlSave(ctx context.Context) (_node *Group, err error
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: node.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if guo.mutation.UsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   group.UsersTable,
+			Columns: group.UsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := guo.mutation.RemovedUsersIDs(); len(nodes) > 0 && !guo.mutation.UsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   group.UsersTable,
+			Columns: group.UsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := guo.mutation.UsersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   group.UsersTable,
+			Columns: group.UsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
 				},
 			},
 		}

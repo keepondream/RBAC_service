@@ -26,6 +26,9 @@ type Group struct {
 	// Type holds the value of the "type" field.
 	// 节点类型可自定义 例如 role:角色组, menu:菜单组, element:页面元素组 ...等等
 	Type string `json:"type,omitempty"`
+	// ParentID holds the value of the "parent_id" field.
+	// 父节点ID
+	ParentID int `json:"parent_id,omitempty"`
 	// Data holds the value of the "data" field.
 	// 自定义json数据
 	Data *interface{} `json:"data,omitempty"`
@@ -42,20 +45,58 @@ type Group struct {
 
 // GroupEdges holds the relations/edges for other nodes in the graph.
 type GroupEdges struct {
+	// Parent holds the value of the parent edge.
+	Parent *Group `json:"parent,omitempty"`
+	// Children holds the value of the children edge.
+	Children []*Group `json:"children,omitempty"`
 	// Nodes holds the value of the nodes edge.
 	Nodes []*Node `json:"nodes,omitempty"`
+	// Users holds the value of the users edge.
+	Users []*User `json:"users,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [4]bool
+}
+
+// ParentOrErr returns the Parent value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e GroupEdges) ParentOrErr() (*Group, error) {
+	if e.loadedTypes[0] {
+		if e.Parent == nil {
+			// The edge parent was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: group.Label}
+		}
+		return e.Parent, nil
+	}
+	return nil, &NotLoadedError{edge: "parent"}
+}
+
+// ChildrenOrErr returns the Children value or an error if the edge
+// was not loaded in eager-loading.
+func (e GroupEdges) ChildrenOrErr() ([]*Group, error) {
+	if e.loadedTypes[1] {
+		return e.Children, nil
+	}
+	return nil, &NotLoadedError{edge: "children"}
 }
 
 // NodesOrErr returns the Nodes value or an error if the edge
 // was not loaded in eager-loading.
 func (e GroupEdges) NodesOrErr() ([]*Node, error) {
-	if e.loadedTypes[0] {
+	if e.loadedTypes[2] {
 		return e.Nodes, nil
 	}
 	return nil, &NotLoadedError{edge: "nodes"}
+}
+
+// UsersOrErr returns the Users value or an error if the edge
+// was not loaded in eager-loading.
+func (e GroupEdges) UsersOrErr() ([]*User, error) {
+	if e.loadedTypes[3] {
+		return e.Users, nil
+	}
+	return nil, &NotLoadedError{edge: "users"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -65,7 +106,7 @@ func (*Group) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case group.FieldData:
 			values[i] = new([]byte)
-		case group.FieldID:
+		case group.FieldID, group.FieldParentID:
 			values[i] = new(sql.NullInt64)
 		case group.FieldTenant, group.FieldName, group.FieldType:
 			values[i] = new(sql.NullString)
@@ -110,6 +151,12 @@ func (gr *Group) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				gr.Type = value.String
 			}
+		case group.FieldParentID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field parent_id", values[i])
+			} else if value.Valid {
+				gr.ParentID = int(value.Int64)
+			}
 		case group.FieldData:
 
 			if value, ok := values[i].(*[]byte); !ok {
@@ -136,9 +183,24 @@ func (gr *Group) assignValues(columns []string, values []interface{}) error {
 	return nil
 }
 
+// QueryParent queries the "parent" edge of the Group entity.
+func (gr *Group) QueryParent() *GroupQuery {
+	return (&GroupClient{config: gr.config}).QueryParent(gr)
+}
+
+// QueryChildren queries the "children" edge of the Group entity.
+func (gr *Group) QueryChildren() *GroupQuery {
+	return (&GroupClient{config: gr.config}).QueryChildren(gr)
+}
+
 // QueryNodes queries the "nodes" edge of the Group entity.
 func (gr *Group) QueryNodes() *NodeQuery {
 	return (&GroupClient{config: gr.config}).QueryNodes(gr)
+}
+
+// QueryUsers queries the "users" edge of the Group entity.
+func (gr *Group) QueryUsers() *UserQuery {
+	return (&GroupClient{config: gr.config}).QueryUsers(gr)
 }
 
 // Update returns a builder for updating this Group.
@@ -170,6 +232,8 @@ func (gr *Group) String() string {
 	builder.WriteString(gr.Name)
 	builder.WriteString(", type=")
 	builder.WriteString(gr.Type)
+	builder.WriteString(", parent_id=")
+	builder.WriteString(fmt.Sprintf("%v", gr.ParentID))
 	builder.WriteString(", data=")
 	builder.WriteString(fmt.Sprintf("%v", gr.Data))
 	builder.WriteString(", created_at=")

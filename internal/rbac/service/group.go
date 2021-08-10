@@ -28,7 +28,14 @@ type Grouper interface {
 
 func (s *Group) Create(ctx context.Context, params ports.PostGroupsJSONBody) (*ports.GroupInfoResponse, error) {
 	r := repo.NewGroup(s.Repo)
-	return r.Create(ctx, params)
+	res, err := r.Create(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	s.SyncCasbinForGroup(ctx, res.Id, string(res.Tenant))
+
+	return res, nil
 }
 
 func (s *Group) IsUnique(ctx context.Context, tenant string, name string, group_type string) error {
@@ -43,7 +50,20 @@ func (s *Group) GetById(ctx context.Context, id string) (*ports.GroupInfoRespons
 
 func (s *Group) DeleteById(ctx context.Context, id string) error {
 	r := repo.NewGroup(s.Repo)
-	return r.DeleteById(ctx, id)
+
+	res, err := r.GetById(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	err = r.DeleteById(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	s.SyncCasbinForGroup(ctx, res.Id, string(res.Tenant))
+
+	return nil
 }
 
 func (s *Group) List(ctx context.Context, params ports.GetGroupsParams) (*ports.GroupListResponse, error) {
@@ -53,5 +73,12 @@ func (s *Group) List(ctx context.Context, params ports.GetGroupsParams) (*ports.
 
 func (s *Group) Update(ctx context.Context, params ports.PatchGroupsIdJSONBody, id string) (*ports.GroupInfoResponse, error) {
 	r := repo.NewGroup(s.Repo)
-	return r.Update(ctx, params, id)
+	res, err := r.Update(ctx, params, id)
+	if err != nil {
+		return nil, err
+	}
+
+	s.SyncCasbinForGroup(ctx, res.Id, string(res.Tenant))
+
+	return res, nil
 }

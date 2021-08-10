@@ -11,19 +11,19 @@ import (
 	"entgo.io/ent/schema/index"
 )
 
-// Group holds the schema definition for the Group entity.
-type Group struct {
+// User holds the schema definition for the User entity.
+type User struct {
 	ent.Schema
 }
 
-// Fields of the Group.
-func (Group) Fields() []ent.Field {
+// Fields of the User.
+func (User) Fields() []ent.Field {
 	var data interface{}
 	return []ent.Field{
 		field.String("tenant").NotEmpty().Comment("域标识,可自定义用于区分哪个平台使用"),
-		field.String("name").NotEmpty().Comment("名称"),
-		field.String("type").NotEmpty().Comment("节点类型可自定义 例如 role:角色组, menu:菜单组, element:页面元素组 ...等等"),
+		field.String("uuid").NotEmpty().Comment("用户唯一标识,由认证服务或者第三方服务提供的唯一标识"),
 		field.Int("parent_id").Optional().Comment("父节点ID"),
+		field.Bool("is_super").Default(false).Comment("是否为超级管理员,该标识意味着当前用户不需要鉴权,有系统最大权限"),
 		field.JSON("data", &data).Comment("自定义json数据"),
 		field.Time("created_at").SchemaType(map[string]string{
 			dialect.Postgres: "timestamptz(0)",
@@ -38,20 +38,24 @@ func (Group) Fields() []ent.Field {
 	}
 }
 
-// Edges of the Group.
-func (Group) Edges() []ent.Edge {
-	return []ent.Edge{
-		edge.To("children", Group.Type).
-			From("parent").
-			Unique().Field("parent_id"),
-		edge.To("nodes", Node.Type),
-		edge.To("users", User.Type),
+// Indexes of the User.
+func (User) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("tenant", "uuid").Unique(),
 	}
 }
 
-// Indexes of the Group.
-func (Group) Indexes() []ent.Index {
-	return []ent.Index{
-		index.Fields("tenant", "name", "type").Unique(),
+// Edges of the User.
+func (User) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("children", User.Type).
+			From("parent").
+			Unique().Field("parent_id"),
+		edge.From("groups", Group.Type).
+			Ref("users"),
+		edge.From("nodes", Node.Type).
+			Ref("users"),
+		edge.From("permissions", Permission.Type).
+			Ref("users"),
 	}
 }

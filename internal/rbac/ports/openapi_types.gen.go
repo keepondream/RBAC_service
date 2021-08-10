@@ -67,6 +67,9 @@ type Group struct {
 	// 分组名称
 	Name string `json:"name"`
 
+	// 父级ID
+	ParentId string `json:"parent_id"`
+
 	// 域标识,可自定义用于区分哪个平台使用
 	Tenant ItemTenant `json:"tenant"`
 
@@ -82,7 +85,9 @@ type GroupInfoResponse struct {
 	// Embedded struct due to allOf(#/components/schemas/Group)
 	Group `yaml:",inline"`
 	// Embedded fields due to inline allOf schema
-	Nodes *[]Node `json:"nodes,omitempty"`
+	Children []Group `json:"children"`
+	Nodes    []Node  `json:"nodes"`
+	Parent   *Group  `json:"parent,omitempty"`
 }
 
 // GroupListResponse defines model for GroupListResponse.
@@ -170,7 +175,7 @@ type PermissionInfoResponse struct {
 	// Embedded struct due to allOf(#/components/schemas/Permission)
 	Permission `yaml:",inline"`
 	// Embedded fields due to inline allOf schema
-	Routes *[]Route `json:"routes,omitempty"`
+	Routes []Route `json:"routes"`
 }
 
 // PermissionListResponse defines model for PermissionListResponse.
@@ -214,6 +219,50 @@ type RouteInfoResponse Route
 type RouteListResponse struct {
 	Items []Route `json:"items"`
 	Total string  `json:"total"`
+}
+
+// User defines model for User.
+type User struct {
+
+	// 零时区时间格式: YYYY-MM-DDTHH:MM:SSZ
+	CreatedAt time.Time `json:"created_at"`
+
+	// 自定义json对象或者数组json
+	Data ItemData `json:"data"`
+	Id   string   `json:"id"`
+
+	// 是否为超级管理员,该标识意味着当前用户不需要鉴权,有系统最大权限
+	IsSuper bool `json:"is_super"`
+
+	// 父级ID
+	ParentId string `json:"parent_id"`
+
+	// 域标识,可自定义用于区分哪个平台使用
+	Tenant ItemTenant `json:"tenant"`
+
+	// 零时区时间格式: YYYY-MM-DDTHH:MM:SSZ
+	UpdatedAt time.Time `json:"updated_at"`
+
+	// 用户唯一标识,由认证服务或者第三方服务提供的唯一标识
+	Uuid string `json:"uuid"`
+}
+
+// UserInfoResponse defines model for UserInfoResponse.
+type UserInfoResponse struct {
+	// Embedded struct due to allOf(#/components/schemas/User)
+	User `yaml:",inline"`
+	// Embedded fields due to inline allOf schema
+	Children    []User       `json:"children"`
+	Groups      []Group      `json:"groups"`
+	Nodes       []Node       `json:"nodes"`
+	Parent      *User        `json:"parent,omitempty"`
+	Permissions []Permission `json:"permissions"`
+}
+
+// UserListResponse defines model for UserListResponse.
+type UserListResponse struct {
+	Items []UserInfoResponse `json:"items"`
+	Total string             `json:"total"`
 }
 
 // EndTime defines model for end_time.
@@ -296,6 +345,9 @@ type PostGroupsJSONBody struct {
 	// 节点IDs
 	NodeIds []string `json:"node_ids"`
 
+	// 父级ID,非必填选项
+	ParentId *string `json:"parent_id,omitempty"`
+
 	// 域标识,可自定义用于区分哪个平台使用
 	Tenant ItemTenant `json:"tenant"`
 
@@ -314,6 +366,9 @@ type PatchGroupsIdJSONBody struct {
 
 	// 节点IDs
 	NodeIds *[]string `json:"node_ids,omitempty"`
+
+	// 父级ID,非必填选项
+	ParentId *string `json:"parent_id,omitempty"`
 
 	// 域标识,可自定义用于区分哪个平台使用
 	Tenant *ItemTenant `json:"tenant,omitempty"`
@@ -520,6 +575,87 @@ type PatchRoutesIdJSONBody struct {
 	Uri *string `json:"uri,omitempty"`
 }
 
+// GetUsersParams defines parameters for GetUsers.
+type GetUsersParams struct {
+
+	// 页码
+	Page Page `json:"page"`
+
+	// 分页数量 默认20, 最大100
+	PerPage *PerPage `json:"per_page,omitempty"`
+
+	// 排序方式 只支持 asc 或者 desc
+	Order GetUsersParamsOrder `json:"order"`
+
+	// - 查询关键字以空格分割,多个维度用冒号连接关键字,每个关键字需要用encode `示例: 查询默认关键字为name "route1 route2"两个名称的路由, 域标识为 domain1 或者 domain2 的数据`  ``` http://host.com?query=${encodeURIComponent('route1')} ${encodeURIComponent('route2')} tenant:${encodeURIComponent('domain1')} tenant:${encodeURIComponent('domain2')} ```
+	Query *Query `json:"query,omitempty"`
+
+	// 排序字段 多个组合用逗号分隔 示例: id,name
+	Sort *Sort `json:"sort,omitempty"`
+
+	// 起始时间 零时区时间格式: YYYY-MM-DDTHH:MM:SSZ
+	StartTime *StartTime `json:"start_time,omitempty"`
+
+	// 结束时间 零时区时间格式: YYYY-MM-DDTHH:MM:SSZ
+	EndTime *EndTime `json:"end_time,omitempty"`
+}
+
+// GetUsersParamsOrder defines parameters for GetUsers.
+type GetUsersParamsOrder string
+
+// PostUsersJSONBody defines parameters for PostUsers.
+type PostUsersJSONBody struct {
+
+	// 自定义json对象或者数组json
+	Data *ItemData `json:"data,omitempty"`
+
+	// 绑定分组IDS,可以为 角色组,菜单组页面元素组等等
+	GroupIds []string `json:"group_ids"`
+
+	// 是否为超级管理员,该标识意味着当前用户不需要鉴权,有系统最大权限
+	IsSuper bool `json:"is_super"`
+
+	// 绑定节点IDs, 可以为 角色ID,菜单ID,页面元素ID等等
+	NodeIds []string `json:"node_ids"`
+
+	// 父级ID
+	ParentId *string `json:"parent_id,omitempty"`
+
+	// 绑定权限IDS
+	PermissionIds []string `json:"permission_ids"`
+
+	// 域标识,可自定义用于区分哪个平台使用
+	Tenant ItemTenant `json:"tenant"`
+
+	// 用户唯一标识,由认证服务或者第三方服务提供的唯一标识
+	Uuid string `json:"uuid"`
+}
+
+// PatchUsersUuidTenantJSONBody defines parameters for PatchUsersUuidTenant.
+type PatchUsersUuidTenantJSONBody struct {
+
+	// 自定义json对象或者数组json
+	Data *ItemData `json:"data,omitempty"`
+
+	// 绑定分组IDS,可以为 角色组,菜单组页面元素组等等
+	GroupIds *[]string `json:"group_ids,omitempty"`
+
+	// 是否为超级管理员,该标识意味着当前用户不需要鉴权,有系统最大权限
+	IsSuper *bool `json:"is_super,omitempty"`
+
+	// 绑定节点IDs, 可以为 角色ID,菜单ID,页面元素ID等等
+	NodeIds *[]string `json:"node_ids,omitempty"`
+
+	// 父级ID
+	ParentId *string `json:"parent_id,omitempty"`
+
+	// 绑定权限IDS
+	PermissionIds *[]string `json:"permission_ids,omitempty"`
+
+	// 域标识,可自定义用于区分哪个平台使用
+	Tenant *ItemTenant `json:"tenant,omitempty"`
+}
+
 // PostGroupsJSONRequestBody defines body for PostGroups for application/json ContentType.
 type PostGroupsJSONRequestBody PostGroupsJSONBody
 
@@ -543,3 +679,9 @@ type PostRoutesJSONRequestBody PostRoutesJSONBody
 
 // PatchRoutesIdJSONRequestBody defines body for PatchRoutesId for application/json ContentType.
 type PatchRoutesIdJSONRequestBody PatchRoutesIdJSONBody
+
+// PostUsersJSONRequestBody defines body for PostUsers for application/json ContentType.
+type PostUsersJSONRequestBody PostUsersJSONBody
+
+// PatchUsersUuidTenantJSONRequestBody defines body for PatchUsersUuidTenant for application/json ContentType.
+type PatchUsersUuidTenantJSONRequestBody PatchUsersUuidTenantJSONBody

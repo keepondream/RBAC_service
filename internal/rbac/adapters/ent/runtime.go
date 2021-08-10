@@ -10,6 +10,7 @@ import (
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/permission"
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/route"
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/schema"
+	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/user"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -31,11 +32,11 @@ func init() {
 	// group.TypeValidator is a validator for the "type" field. It is called by the builders before save.
 	group.TypeValidator = groupDescType.Validators[0].(func(string) error)
 	// groupDescCreatedAt is the schema descriptor for created_at field.
-	groupDescCreatedAt := groupFields[4].Descriptor()
+	groupDescCreatedAt := groupFields[5].Descriptor()
 	// group.DefaultCreatedAt holds the default value on creation for the created_at field.
 	group.DefaultCreatedAt = groupDescCreatedAt.Default.(func() time.Time)
 	// groupDescUpdatedAt is the schema descriptor for updated_at field.
-	groupDescUpdatedAt := groupFields[5].Descriptor()
+	groupDescUpdatedAt := groupFields[6].Descriptor()
 	// group.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	group.DefaultUpdatedAt = groupDescUpdatedAt.Default.(func() time.Time)
 	// group.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -108,4 +109,28 @@ func init() {
 	route.DefaultUpdatedAt = routeDescUpdatedAt.Default.(func() time.Time)
 	// route.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	route.UpdateDefaultUpdatedAt = routeDescUpdatedAt.UpdateDefault.(func() time.Time)
+	userFields := schema.User{}.Fields()
+	_ = userFields
+	// userDescTenant is the schema descriptor for tenant field.
+	userDescTenant := userFields[0].Descriptor()
+	// user.TenantValidator is a validator for the "tenant" field. It is called by the builders before save.
+	user.TenantValidator = userDescTenant.Validators[0].(func(string) error)
+	// userDescUUID is the schema descriptor for uuid field.
+	userDescUUID := userFields[1].Descriptor()
+	// user.UUIDValidator is a validator for the "uuid" field. It is called by the builders before save.
+	user.UUIDValidator = userDescUUID.Validators[0].(func(string) error)
+	// userDescIsSuper is the schema descriptor for is_super field.
+	userDescIsSuper := userFields[3].Descriptor()
+	// user.DefaultIsSuper holds the default value on creation for the is_super field.
+	user.DefaultIsSuper = userDescIsSuper.Default.(bool)
+	// userDescCreatedAt is the schema descriptor for created_at field.
+	userDescCreatedAt := userFields[5].Descriptor()
+	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
+	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
+	// userDescUpdatedAt is the schema descriptor for updated_at field.
+	userDescUpdatedAt := userFields[6].Descriptor()
+	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
+	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	user.UpdateDefaultUpdatedAt = userDescUpdatedAt.UpdateDefault.(func() time.Time)
 }

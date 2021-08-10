@@ -43,9 +43,11 @@ type PermissionEdges struct {
 	Routes []*Route `json:"routes,omitempty"`
 	// Nodes holds the value of the nodes edge.
 	Nodes []*Node `json:"nodes,omitempty"`
+	// Users holds the value of the users edge.
+	Users []*User `json:"users,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // RoutesOrErr returns the Routes value or an error if the edge
@@ -64,6 +66,15 @@ func (e PermissionEdges) NodesOrErr() ([]*Node, error) {
 		return e.Nodes, nil
 	}
 	return nil, &NotLoadedError{edge: "nodes"}
+}
+
+// UsersOrErr returns the Users value or an error if the edge
+// was not loaded in eager-loading.
+func (e PermissionEdges) UsersOrErr() ([]*User, error) {
+	if e.loadedTypes[2] {
+		return e.Users, nil
+	}
+	return nil, &NotLoadedError{edge: "users"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -146,6 +157,11 @@ func (pe *Permission) QueryRoutes() *RouteQuery {
 // QueryNodes queries the "nodes" edge of the Permission entity.
 func (pe *Permission) QueryNodes() *NodeQuery {
 	return (&PermissionClient{config: pe.config}).QueryNodes(pe)
+}
+
+// QueryUsers queries the "users" edge of the Permission entity.
+func (pe *Permission) QueryUsers() *UserQuery {
+	return (&PermissionClient{config: pe.config}).QueryUsers(pe)
 }
 
 // Update returns a builder for updating this Permission.

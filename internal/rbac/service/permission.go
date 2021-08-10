@@ -28,7 +28,15 @@ type Permissioner interface {
 
 func (s *Permission) Create(ctx context.Context, params ports.PostPermissionsJSONBody) (*ports.PermissionInfoResponse, error) {
 	r := repo.NewPermission(s.Repo)
-	return r.Create(ctx, params)
+	res, err := r.Create(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	// 同步权限所有的casbin策略
+	s.SyncPolicyForPermission(ctx, res.Id)
+
+	return res, nil
 }
 
 func (s *Permission) IsUnique(ctx context.Context, tenant string, name string) error {
@@ -48,10 +56,26 @@ func (s *Permission) List(ctx context.Context, params ports.GetPermissionsParams
 
 func (s *Permission) DeleteById(ctx context.Context, id string) error {
 	r := repo.NewPermission(s.Repo)
-	return r.DeleteById(ctx, id)
+	err := r.DeleteById(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	// 同步权限所有的casbin策略
+	s.SyncPolicyForPermission(ctx, id)
+
+	return nil
 }
 
 func (s *Permission) Update(ctx context.Context, params ports.PatchPermissionsIdJSONBody, id string) (*ports.PermissionInfoResponse, error) {
 	r := repo.NewPermission(s.Repo)
-	return r.Update(ctx, params, id)
+	res, err := r.Update(ctx, params, id)
+	if err != nil {
+		return nil, err
+	}
+
+	// 同步权限所有的casbin策略
+	s.SyncPolicyForPermission(ctx, res.Id)
+
+	return res, nil
 }

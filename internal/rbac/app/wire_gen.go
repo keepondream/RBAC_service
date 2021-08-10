@@ -27,7 +27,8 @@ func NewApplication() (*App, error) {
 	permission := service.NewPermission(serviceService)
 	node := service.NewNode(serviceService)
 	group := service.NewGroup(serviceService)
-	httpServer := ports.NewHttpServer(route, permission, node, group)
+	user := service.NewUser(serviceService)
+	httpServer := ports.NewHttpServer(route, permission, node, group, user)
 	app := NewApp(httpServer)
 	return app, nil
 }
@@ -41,3 +42,5 @@ var NewPermission = wire.NewSet(service.NewPermission, wire.Bind(new(ports.Permi
 var NewNode = wire.NewSet(service.NewNode, wire.Bind(new(ports.Noder), new(*service.Node)))
 
 var NewGroup = wire.NewSet(service.NewGroup, wire.Bind(new(ports.Grouper), new(*service.Group)))
+
+var NewUser = wire.NewSet(service.NewUser, wire.Bind(new(ports.Userer), new(*service.User)))

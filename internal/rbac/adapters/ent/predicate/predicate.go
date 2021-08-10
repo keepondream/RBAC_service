@@ -17,3 +17,6 @@ type Permission func(*sql.Selector)
 
 // Route is the predicate function for route builders.
 type Route func(*sql.Selector)
+
+// User is the predicate function for user builders.
+type User func(*sql.Selector)

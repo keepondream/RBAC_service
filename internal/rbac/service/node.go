@@ -28,7 +28,15 @@ type Noder interface {
 
 func (s *Node) Create(ctx context.Context, params ports.PostNodesJSONBody) (*ports.NodeInfoResponse, error) {
 	r := repo.NewNode(s.Repo)
-	return r.Create(ctx, params)
+	res, err := r.Create(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	// 同步节点对应的权限
+	s.SyncCasbinForNode(ctx, res.Id, string(res.Tenant))
+
+	return res, nil
 }
 
 func (s *Node) IsUnique(ctx context.Context, tenant string, name string, node_type string) error {
@@ -43,7 +51,21 @@ func (s *Node) GetById(ctx context.Context, id string) (*ports.NodeInfoResponse,
 
 func (s *Node) DeleteById(ctx context.Context, id string) error {
 	r := repo.NewNode(s.Repo)
-	return r.DeleteById(ctx, id)
+
+	res, err := r.GetById(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	err = r.DeleteById(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	// 同步节点对应的权限
+	s.SyncCasbinForNode(ctx, res.Id, string(res.Tenant))
+
+	return nil
 }
 
 func (s *Node) List(ctx context.Context, params ports.GetNodesParams) (*ports.NodeListResponse, error) {
@@ -53,5 +75,13 @@ func (s *Node) List(ctx context.Context, params ports.GetNodesParams) (*ports.No
 
 func (s *Node) Update(ctx context.Context, params ports.PatchNodesIdJSONBody, id string) (*ports.NodeInfoResponse, error) {
 	r := repo.NewNode(s.Repo)
-	return r.Update(ctx, params, id)
+	res, err := r.Update(ctx, params, id)
+	if err != nil {
+		return nil, err
+	}
+
+	// 同步节点对应的权限
+	s.SyncCasbinForNode(ctx, res.Id, string(res.Tenant))
+
+	return res, nil
 }

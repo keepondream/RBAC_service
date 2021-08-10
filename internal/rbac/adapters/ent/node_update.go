@@ -14,6 +14,7 @@ import (
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/node"
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/permission"
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/predicate"
+	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/user"
 )
 
 // NodeUpdate is the builder for updating Node entities.
@@ -144,6 +145,21 @@ func (nu *NodeUpdate) AddPermissions(p ...*Permission) *NodeUpdate {
 	return nu.AddPermissionIDs(ids...)
 }
 
+// AddUserIDs adds the "users" edge to the User entity by IDs.
+func (nu *NodeUpdate) AddUserIDs(ids ...int) *NodeUpdate {
+	nu.mutation.AddUserIDs(ids...)
+	return nu
+}
+
+// AddUsers adds the "users" edges to the User entity.
+func (nu *NodeUpdate) AddUsers(u ...*User) *NodeUpdate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return nu.AddUserIDs(ids...)
+}
+
 // Mutation returns the NodeMutation object of the builder.
 func (nu *NodeUpdate) Mutation() *NodeMutation {
 	return nu.mutation
@@ -216,6 +232,27 @@ func (nu *NodeUpdate) RemovePermissions(p ...*Permission) *NodeUpdate {
 		ids[i] = p[i].ID
 	}
 	return nu.RemovePermissionIDs(ids...)
+}
+
+// ClearUsers clears all "users" edges to the User entity.
+func (nu *NodeUpdate) ClearUsers() *NodeUpdate {
+	nu.mutation.ClearUsers()
+	return nu
+}
+
+// RemoveUserIDs removes the "users" edge to User entities by IDs.
+func (nu *NodeUpdate) RemoveUserIDs(ids ...int) *NodeUpdate {
+	nu.mutation.RemoveUserIDs(ids...)
+	return nu
+}
+
+// RemoveUsers removes "users" edges to User entities.
+func (nu *NodeUpdate) RemoveUsers(u ...*User) *NodeUpdate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return nu.RemoveUserIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -561,6 +598,60 @@ func (nu *NodeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if nu.mutation.UsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   node.UsersTable,
+			Columns: node.UsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := nu.mutation.RemovedUsersIDs(); len(nodes) > 0 && !nu.mutation.UsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   node.UsersTable,
+			Columns: node.UsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := nu.mutation.UsersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   node.UsersTable,
+			Columns: node.UsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, nu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{node.Label}
@@ -695,6 +786,21 @@ func (nuo *NodeUpdateOne) AddPermissions(p ...*Permission) *NodeUpdateOne {
 	return nuo.AddPermissionIDs(ids...)
 }
 
+// AddUserIDs adds the "users" edge to the User entity by IDs.
+func (nuo *NodeUpdateOne) AddUserIDs(ids ...int) *NodeUpdateOne {
+	nuo.mutation.AddUserIDs(ids...)
+	return nuo
+}
+
+// AddUsers adds the "users" edges to the User entity.
+func (nuo *NodeUpdateOne) AddUsers(u ...*User) *NodeUpdateOne {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return nuo.AddUserIDs(ids...)
+}
+
 // Mutation returns the NodeMutation object of the builder.
 func (nuo *NodeUpdateOne) Mutation() *NodeMutation {
 	return nuo.mutation
@@ -767,6 +873,27 @@ func (nuo *NodeUpdateOne) RemovePermissions(p ...*Permission) *NodeUpdateOne {
 		ids[i] = p[i].ID
 	}
 	return nuo.RemovePermissionIDs(ids...)
+}
+
+// ClearUsers clears all "users" edges to the User entity.
+func (nuo *NodeUpdateOne) ClearUsers() *NodeUpdateOne {
+	nuo.mutation.ClearUsers()
+	return nuo
+}
+
+// RemoveUserIDs removes the "users" edge to User entities by IDs.
+func (nuo *NodeUpdateOne) RemoveUserIDs(ids ...int) *NodeUpdateOne {
+	nuo.mutation.RemoveUserIDs(ids...)
+	return nuo
+}
+
+// RemoveUsers removes "users" edges to User entities.
+func (nuo *NodeUpdateOne) RemoveUsers(u ...*User) *NodeUpdateOne {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return nuo.RemoveUserIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -1128,6 +1255,60 @@ func (nuo *NodeUpdateOne) sqlSave(ctx context.Context) (_node *Node, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: permission.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nuo.mutation.UsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   node.UsersTable,
+			Columns: node.UsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := nuo.mutation.RemovedUsersIDs(); len(nodes) > 0 && !nuo.mutation.UsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   node.UsersTable,
+			Columns: node.UsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := nuo.mutation.UsersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   node.UsersTable,
+			Columns: node.UsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
 				},
 			},
 		}

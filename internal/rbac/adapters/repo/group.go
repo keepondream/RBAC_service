@@ -38,14 +38,23 @@ func (r *Group) Ent2Port(model *ent.Group) *ports.Group {
 }
 
 func (r *Group) Model2Response(ctx context.Context, model *ent.Group) *ports.GroupInfoResponse {
-	nodeRepo := NewNode(r.Repo)
-	nodes := []ports.Node{}
-	for _, node := range model.Edges.Nodes {
-		nodes = append(nodes, *nodeRepo.Ent2Port(node))
-	}
 	resp := ports.GroupInfoResponse{
-		Group: *r.Ent2Port(model),
-		Nodes: &nodes,
+		Group:    *r.Ent2Port(model),
+		Nodes:    []ports.Node{},
+		Children: []ports.Group{},
+	}
+
+	if model.Edges.Parent != nil {
+		resp.Parent = r.Ent2Port(model.Edges.Parent)
+	}
+
+	for _, c := range model.Edges.Children {
+		resp.Children = append(resp.Children, *r.Ent2Port(c))
+	}
+
+	nodeRepo := NewNode(r.Repo)
+	for _, n := range model.Edges.Nodes {
+		resp.Nodes = append(resp.Nodes, *nodeRepo.Ent2Port(n))
 	}
 
 	return &resp
@@ -65,6 +74,14 @@ func (r *Group) Create(ctx context.Context, params ports.PostGroupsJSONBody) (*p
 	if params.Data != nil {
 		modelQuery.SetData((*interface{})(params.Data))
 	}
+	if params.ParentId != nil {
+		parent, err := r.EntClient.Group.Query().Where(group.Tenant(string(params.Tenant))).Where(group.ID(cast.ToInt(params.ParentId))).First(ctx)
+		if err != nil {
+			return nil, err
+		}
+		modelQuery.SetParent(parent)
+	}
+
 	model, err := modelQuery.Save(ctx)
 	if err != nil {
 		return nil, err
@@ -88,7 +105,10 @@ func (r *Group) IsUnique(ctx context.Context, tenant string, name string, group_
 }
 
 func (r *Group) GetById(ctx context.Context, id string) (*ports.GroupInfoResponse, error) {
-	model, err := r.EntClient.Group.Query().WithNodes().
+	model, err := r.EntClient.Group.Query().
+		WithParent().
+		WithChildren().
+		WithNodes().
 		Where(group.ID(cast.ToInt(id))).First(ctx)
 	if err != nil {
 		return nil, err
@@ -113,7 +133,10 @@ func (r *Group) List(ctx context.Context, params ports.GetGroupsParams) (*ports.
 
 	offset, limit := utils.ParsePagination(string(params.Page), pageSize)
 
-	modelQuery := r.EntClient.Group.Query().WithNodes()
+	modelQuery := r.EntClient.Group.Query().
+		WithParent().
+		WithChildren().
+		WithNodes()
 
 	if params.Query != nil {
 		conditions := utils.ParseQuery(string(*params.Query))
@@ -129,6 +152,35 @@ func (r *Group) List(ctx context.Context, params ports.GetGroupsParams) (*ports.
 		}
 		if values, ok := conditions[group.FieldTenant]; ok {
 			modelQuery.Where(group.TenantIn(values...))
+		}
+		if values, ok := conditions[group.FieldParentID]; ok {
+			ids := []int{}
+			for _, v := range values {
+				ids = append(ids, cast.ToInt(v))
+			}
+			modelQuery.Where(group.ParentIDIn(ids...))
+		}
+		// 根据父级相关属性查询
+		if values, ok := conditions[fmt.Sprintf("%s.%s", group.EdgeParent, group.FieldID)]; ok {
+			ids := []int{}
+			for _, v := range values {
+				ids = append(ids, cast.ToInt(v))
+			}
+			modelQuery.Where(group.HasParentWith(group.IDIn(ids...)))
+		}
+		if values, ok := conditions[fmt.Sprintf("%s.%s", group.EdgeParent, group.FieldName)]; ok {
+			modelQuery.Where(group.HasParentWith(group.NameIn(values...)))
+		}
+		// 根据子级相关属性查询
+		if values, ok := conditions[fmt.Sprintf("%s.%s", group.EdgeChildren, group.FieldID)]; ok {
+			ids := []int{}
+			for _, v := range values {
+				ids = append(ids, cast.ToInt(v))
+			}
+			modelQuery.Where(group.HasChildrenWith(group.IDIn(ids...)))
+		}
+		if values, ok := conditions[fmt.Sprintf("%s.%s", group.EdgeChildren, group.FieldName)]; ok {
+			modelQuery.Where(group.HasChildrenWith(group.NameIn(values...)))
 		}
 		// 根据节点相关属性查询
 		if values, ok := conditions[fmt.Sprintf("%s.%s", group.EdgeNodes, node.FieldID)]; ok {
@@ -196,6 +248,17 @@ func (r *Group) Update(ctx context.Context, params ports.PatchGroupsIdJSONBody, 
 	}
 	if params.Type != nil {
 		modelQuery.SetType(string(*params.Type))
+	}
+	if params.ParentId != nil {
+		if *params.ParentId == "" {
+			modelQuery.ClearParent()
+		} else {
+			parent, err := r.EntClient.Group.Query().Where(group.Tenant(model.Tenant)).Where(group.ID(cast.ToInt(params.ParentId))).First(ctx)
+			if err != nil {
+				return nil, err
+			}
+			modelQuery.ClearParent().SetParent(parent)
+		}
 	}
 
 	if params.NodeIds != nil {

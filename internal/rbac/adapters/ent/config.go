@@ -28,6 +28,7 @@ type hooks struct {
 	Node       []ent.Hook
 	Permission []ent.Hook
 	Route      []ent.Hook
+	User       []ent.Hook
 }
 
 // Options applies the options on the config object.

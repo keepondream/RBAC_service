@@ -37,15 +37,17 @@ func (r *Permission) Ent2Port(model *ent.Permission) *ports.Permission {
 }
 
 func (r *Permission) Model2Response(ctx context.Context, model *ent.Permission) *ports.PermissionInfoResponse {
-	routes := []ports.Route{}
-	routeRepo := NewRoute(r.Repo)
-	for _, route := range model.QueryRoutes().AllX(ctx) {
-		routes = append(routes, *routeRepo.Ent2Port(route))
-	}
-	return &ports.PermissionInfoResponse{
+	resp := ports.PermissionInfoResponse{
 		Permission: *r.Ent2Port(model),
-		Routes:     &routes,
+		Routes:     []ports.Route{},
 	}
+
+	routeRepo := NewRoute(r.Repo)
+	for _, r := range model.QueryRoutes().AllX(ctx) {
+		resp.Routes = append(resp.Routes, *routeRepo.Ent2Port(r))
+	}
+
+	return &resp
 }
 
 func (r *Permission) Create(ctx context.Context, params ports.PostPermissionsJSONBody) (*ports.PermissionInfoResponse, error) {

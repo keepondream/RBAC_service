@@ -20,6 +20,8 @@ type Tx struct {
 	Permission *PermissionClient
 	// Route is the client for interacting with the Route builders.
 	Route *RouteClient
+	// User is the client for interacting with the User builders.
+	User *UserClient
 
 	// lazily loaded.
 	client     *Client
@@ -159,6 +161,7 @@ func (tx *Tx) init() {
 	tx.Node = NewNodeClient(tx.config)
 	tx.Permission = NewPermissionClient(tx.config)
 	tx.Route = NewRouteClient(tx.config)
+	tx.User = NewUserClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

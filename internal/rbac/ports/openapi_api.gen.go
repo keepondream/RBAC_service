@@ -73,6 +73,21 @@ type ServerInterface interface {
 	// 修改路由信息
 	// (PATCH /routes/{id})
 	PatchRoutesId(w http.ResponseWriter, r *http.Request, id string)
+	// 绑定用户列表
+	// (GET /users)
+	GetUsers(w http.ResponseWriter, r *http.Request, params GetUsersParams)
+	// 绑定用户
+	// (POST /users)
+	PostUsers(w http.ResponseWriter, r *http.Request)
+	// 删除绑定用户
+	// (DELETE /users/{uuid}/{tenant})
+	DeleteUsersUuidTenant(w http.ResponseWriter, r *http.Request, uuid string, tenant string)
+	// 获取绑定用户详情(包含拥有的权限,角色,子级用户,角色组,菜单组等等)
+	// (GET /users/{uuid}/{tenant})
+	GetUsersUuidTenant(w http.ResponseWriter, r *http.Request, uuid string, tenant string)
+	// 更新绑定用户(角色,权限,子级,父级,分组等等)
+	// (PATCH /users/{uuid}/{tenant})
+	PatchUsersUuidTenant(w http.ResponseWriter, r *http.Request, uuid string, tenant string)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -867,6 +882,229 @@ func (siw *ServerInterfaceWrapper) PatchRoutesId(w http.ResponseWriter, r *http.
 	handler(w, r.WithContext(ctx))
 }
 
+// GetUsers operation middleware
+func (siw *ServerInterfaceWrapper) GetUsers(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetUsersParams
+
+	// ------------- Required query parameter "page" -------------
+	if paramValue := r.URL.Query().Get("page"); paramValue != "" {
+
+	} else {
+		http.Error(w, "Query argument page is required, but not found", http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "page", r.URL.Query(), &params.Page)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter page: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "per_page" -------------
+	if paramValue := r.URL.Query().Get("per_page"); paramValue != "" {
+
+	}
+
+	err = runtime.BindQueryParameter("form", true, false, "per_page", r.URL.Query(), &params.PerPage)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter per_page: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Required query parameter "order" -------------
+	if paramValue := r.URL.Query().Get("order"); paramValue != "" {
+
+	} else {
+		http.Error(w, "Query argument order is required, but not found", http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "order", r.URL.Query(), &params.Order)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter order: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "query" -------------
+	if paramValue := r.URL.Query().Get("query"); paramValue != "" {
+
+	}
+
+	err = runtime.BindQueryParameter("form", true, false, "query", r.URL.Query(), &params.Query)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter query: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "sort" -------------
+	if paramValue := r.URL.Query().Get("sort"); paramValue != "" {
+
+	}
+
+	err = runtime.BindQueryParameter("form", true, false, "sort", r.URL.Query(), &params.Sort)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter sort: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "start_time" -------------
+	if paramValue := r.URL.Query().Get("start_time"); paramValue != "" {
+
+	}
+
+	err = runtime.BindQueryParameter("form", true, false, "start_time", r.URL.Query(), &params.StartTime)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter start_time: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "end_time" -------------
+	if paramValue := r.URL.Query().Get("end_time"); paramValue != "" {
+
+	}
+
+	err = runtime.BindQueryParameter("form", true, false, "end_time", r.URL.Query(), &params.EndTime)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter end_time: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetUsers(w, r, params)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// PostUsers operation middleware
+func (siw *ServerInterfaceWrapper) PostUsers(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostUsers(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// DeleteUsersUuidTenant operation middleware
+func (siw *ServerInterfaceWrapper) DeleteUsersUuidTenant(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "uuid" -------------
+	var uuid string
+
+	err = runtime.BindStyledParameter("simple", false, "uuid", chi.URLParam(r, "uuid"), &uuid)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter uuid: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "tenant" -------------
+	var tenant string
+
+	err = runtime.BindStyledParameter("simple", false, "tenant", chi.URLParam(r, "tenant"), &tenant)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter tenant: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteUsersUuidTenant(w, r, uuid, tenant)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// GetUsersUuidTenant operation middleware
+func (siw *ServerInterfaceWrapper) GetUsersUuidTenant(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "uuid" -------------
+	var uuid string
+
+	err = runtime.BindStyledParameter("simple", false, "uuid", chi.URLParam(r, "uuid"), &uuid)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter uuid: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "tenant" -------------
+	var tenant string
+
+	err = runtime.BindStyledParameter("simple", false, "tenant", chi.URLParam(r, "tenant"), &tenant)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter tenant: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetUsersUuidTenant(w, r, uuid, tenant)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// PatchUsersUuidTenant operation middleware
+func (siw *ServerInterfaceWrapper) PatchUsersUuidTenant(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "uuid" -------------
+	var uuid string
+
+	err = runtime.BindStyledParameter("simple", false, "uuid", chi.URLParam(r, "uuid"), &uuid)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter uuid: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "tenant" -------------
+	var tenant string
+
+	err = runtime.BindStyledParameter("simple", false, "tenant", chi.URLParam(r, "tenant"), &tenant)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter tenant: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PatchUsersUuidTenant(w, r, uuid, tenant)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
 // Handler creates http.Handler with routing matching OpenAPI spec.
 func Handler(si ServerInterface) http.Handler {
 	return HandlerWithOptions(si, ChiServerOptions{})
@@ -963,6 +1201,21 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Patch(options.BaseURL+"/routes/{id}", wrapper.PatchRoutesId)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/users", wrapper.GetUsers)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/users", wrapper.PostUsers)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/users/{uuid}/{tenant}", wrapper.DeleteUsersUuidTenant)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/users/{uuid}/{tenant}", wrapper.GetUsersUuidTenant)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/users/{uuid}/{tenant}", wrapper.PatchUsersUuidTenant)
 	})
 
 	return r
