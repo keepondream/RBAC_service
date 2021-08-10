@@ -88,6 +88,12 @@ type ServerInterface interface {
 	// 更新绑定用户(角色,权限,子级,父级,分组等等)
 	// (PATCH /users/{uuid}/{tenant})
 	PatchUsersUuidTenant(w http.ResponseWriter, r *http.Request, uuid string, tenant string)
+	// 获取用户所有的关系图(节点,分组,权限)
+	// (GET /users/{uuid}/{tenant}/relations)
+	GetUsersUuidTenantRelations(w http.ResponseWriter, r *http.Request, uuid string, tenant string)
+	// 获取用户的所有路由(包含权限,角色,菜单,角色组等等...)
+	// (GET /users/{uuid}/{tenant}/routes)
+	GetUsersUuidTenantRoutes(w http.ResponseWriter, r *http.Request, uuid string, tenant string)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -1105,6 +1111,76 @@ func (siw *ServerInterfaceWrapper) PatchUsersUuidTenant(w http.ResponseWriter, r
 	handler(w, r.WithContext(ctx))
 }
 
+// GetUsersUuidTenantRelations operation middleware
+func (siw *ServerInterfaceWrapper) GetUsersUuidTenantRelations(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "uuid" -------------
+	var uuid string
+
+	err = runtime.BindStyledParameter("simple", false, "uuid", chi.URLParam(r, "uuid"), &uuid)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter uuid: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "tenant" -------------
+	var tenant string
+
+	err = runtime.BindStyledParameter("simple", false, "tenant", chi.URLParam(r, "tenant"), &tenant)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter tenant: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetUsersUuidTenantRelations(w, r, uuid, tenant)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// GetUsersUuidTenantRoutes operation middleware
+func (siw *ServerInterfaceWrapper) GetUsersUuidTenantRoutes(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "uuid" -------------
+	var uuid string
+
+	err = runtime.BindStyledParameter("simple", false, "uuid", chi.URLParam(r, "uuid"), &uuid)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter uuid: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "tenant" -------------
+	var tenant string
+
+	err = runtime.BindStyledParameter("simple", false, "tenant", chi.URLParam(r, "tenant"), &tenant)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter tenant: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetUsersUuidTenantRoutes(w, r, uuid, tenant)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
 // Handler creates http.Handler with routing matching OpenAPI spec.
 func Handler(si ServerInterface) http.Handler {
 	return HandlerWithOptions(si, ChiServerOptions{})
@@ -1216,6 +1292,12 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Patch(options.BaseURL+"/users/{uuid}/{tenant}", wrapper.PatchUsersUuidTenant)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/users/{uuid}/{tenant}/relations", wrapper.GetUsersUuidTenantRelations)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/users/{uuid}/{tenant}/routes", wrapper.GetUsersUuidTenantRoutes)
 	})
 
 	return r

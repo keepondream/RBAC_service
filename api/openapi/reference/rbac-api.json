@@ -1188,6 +1188,107 @@
         ],
         "description": "删除绑定用户"
       }
+    },
+    "/users/{uuid}/{tenant}/routes": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "uuid",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tenant",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "获取用户的所有路由(包含权限,角色,菜单,角色组等等...)",
+        "tags": [
+          "user"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserAllRoutesResponse"
+                },
+                "examples": {}
+              }
+            }
+          }
+        },
+        "operationId": "get-users-uuid-tenant-routes",
+        "description": "获取用户的所有路由(包含权限,角色,菜单,角色组等等...)\n所有隐性的路由全部查出来",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{uuid}/{tenant}/relations": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "uuid",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tenant",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "获取用户所有的关系图(节点,分组,权限)",
+        "tags": [
+          "user"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserAllRelationsResponse"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-users-uuid-tenant-relations",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        },
+        "description": "获取用户所有的关系图(节点,分组,权限)\n节点,分组根据自定义type区分(角色/菜单/页面元素等等...)"
+      }
     }
   },
   "components": {
@@ -1706,6 +1807,115 @@
         "required": [
           "total",
           "items"
+        ]
+      },
+      "UserAllRoutesResponse": {
+        "$ref": "#/components/schemas/ItemRoute"
+      },
+      "UserAllRelationsResponse": {
+        "title": "UserAllRelationsResponse",
+        "type": "object",
+        "properties": {
+          "node_items": {
+            "type": "array",
+            "description": "节点IDs",
+            "items": {
+              "$ref": "#/components/schemas/ItemRelation"
+            }
+          },
+          "permission_items": {
+            "type": "array",
+            "description": "权限IDs",
+            "items": {
+              "$ref": "#/components/schemas/ItemRelation"
+            }
+          },
+          "group_items": {
+            "type": "array",
+            "description": "分组IDs",
+            "items": {
+              "$ref": "#/components/schemas/ItemRelation"
+            }
+          }
+        },
+        "required": [
+          "node_items",
+          "permission_items",
+          "group_items"
+        ]
+      },
+      "ItemRelation": {
+        "title": "ItemRelation",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "名称"
+          },
+          "tenant": {
+            "$ref": "#/components/schemas/ItemTenant"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ItemType"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "tenant"
+        ]
+      },
+      "ItemPolicy": {
+        "title": "ItemPolicy",
+        "type": "object",
+        "properties": {
+          "permission_id": {
+            "type": "string",
+            "description": "权限ID"
+          },
+          "tenant": {
+            "$ref": "#/components/schemas/ItemTenant"
+          },
+          "uri": {
+            "type": "string",
+            "description": "路由path"
+          },
+          "method": {
+            "$ref": "#/components/schemas/ItemMethod"
+          }
+        },
+        "required": [
+          "permission_id",
+          "tenant",
+          "uri",
+          "method"
+        ]
+      },
+      "ItemRoute": {
+        "title": "ItemRoute",
+        "type": "object",
+        "properties": {
+          "permission_ids": {
+            "type": "array",
+            "description": "权限IDs",
+            "items": {
+              "type": "string"
+            }
+          },
+          "policies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ItemPolicy"
+            }
+          }
+        },
+        "required": [
+          "permission_ids",
+          "policies"
         ]
       }
     },

@@ -198,8 +198,8 @@ func (s *Service) GetAllPolicyForPrefix(prefix, tenant string) ([][]string, erro
 	return s.CasbinE.GetImplicitPermissionsForUser(prefix, tenant)
 }
 
-// GetAllChildrenForPrefix 获取(节点/分组/权限) 下所有递归关系,不包含路由策略
-func (s *Service) GetAllChildrenForPrefix(prefix, tenant string) ([]string, error) {
+// GetAllRelationsForPrefix 获取(节点/分组/权限) 下所有递归关系,不包含路由策略
+func (s *Service) GetAllRelationsForPrefix(prefix, tenant string) ([]string, error) {
 	// 获取当前用户继承的所有一级继承,包一级继承下的所有继承的继承
 	return s.CasbinE.GetImplicitRolesForUser(prefix, tenant)
 }

@@ -17,6 +17,8 @@ type Userer interface {
 	DeleteByUuid(ctx context.Context, tenant, uuid string) error
 	List(ctx context.Context, params GetUsersParams) (*UserListResponse, error)
 	Update(ctx context.Context, params PatchUsersUuidTenantJSONBody, tenant, uuid string) (*UserInfoResponse, error)
+	GetAllRoutes(ctx context.Context, tenant, uuid string) (*UserAllRoutesResponse, error)
+	GetAllRelations(ctx context.Context, tenant, uuid string) (*UserAllRelationsResponse, error)
 }
 
 // 绑定用户列表
@@ -124,6 +126,40 @@ func (h *HttpServer) PatchUsersUuidTenant(w http.ResponseWriter, r *http.Request
 	}
 
 	res, err := h.UserService.Update(r.Context(), PatchUsersUuidTenantJSONBody(params), tenant, uuid)
+	if err != nil {
+		utils.Render(w, r, 400, utils.WithError(err))
+		return
+	}
+
+	utils.Render(w, r, 200, utils.WithData(res))
+}
+
+// 获取用户所有的关系图(节点,分组,权限)
+// (GET /users/{uuid}/{tenant}/relations)
+func (h *HttpServer) GetUsersUuidTenantRelations(w http.ResponseWriter, r *http.Request, uuid string, tenant string) {
+	_, err := h.UserService.GetByUuid(r.Context(), tenant, uuid)
+	if err != nil {
+		utils.Render(w, r, 404, utils.WithError(err))
+		return
+	}
+	res, err := h.UserService.GetAllRelations(r.Context(), tenant, uuid)
+	if err != nil {
+		utils.Render(w, r, 400, utils.WithError(err))
+		return
+	}
+
+	utils.Render(w, r, 200, utils.WithData(res))
+}
+
+// 获取用户的所有路由(包含权限,角色,菜单,角色组等等...)
+// (GET /users/{uuid}/{tenant}/routes)
+func (h *HttpServer) GetUsersUuidTenantRoutes(w http.ResponseWriter, r *http.Request, uuid string, tenant string) {
+	_, err := h.UserService.GetByUuid(r.Context(), tenant, uuid)
+	if err != nil {
+		utils.Render(w, r, 404, utils.WithError(err))
+		return
+	}
+	res, err := h.UserService.GetAllRoutes(r.Context(), tenant, uuid)
 	if err != nil {
 		utils.Render(w, r, 400, utils.WithError(err))
 		return

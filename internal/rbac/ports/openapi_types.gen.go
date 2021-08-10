@@ -102,6 +102,46 @@ type ItemData interface{}
 // URL请求方式 GET,HEAD,POST,PUT,PATCH,DELETE,CONNECT,OPTIONS,TRACE
 type ItemMethod string
 
+// ItemPolicy defines model for ItemPolicy.
+type ItemPolicy struct {
+
+	// URL请求方式 GET,HEAD,POST,PUT,PATCH,DELETE,CONNECT,OPTIONS,TRACE
+	Method ItemMethod `json:"method"`
+
+	// 权限ID
+	PermissionId string `json:"permission_id"`
+
+	// 域标识,可自定义用于区分哪个平台使用
+	Tenant ItemTenant `json:"tenant"`
+
+	// 路由path
+	Uri string `json:"uri"`
+}
+
+// ItemRelation defines model for ItemRelation.
+type ItemRelation struct {
+
+	// ID
+	Id string `json:"id"`
+
+	// 名称
+	Name string `json:"name"`
+
+	// 域标识,可自定义用于区分哪个平台使用
+	Tenant ItemTenant `json:"tenant"`
+
+	// 节点或者分组的类型可自定义 例如 role:角色, menu:菜单, element:页面元素 ...等等
+	Type *ItemType `json:"type,omitempty"`
+}
+
+// ItemRoute defines model for ItemRoute.
+type ItemRoute struct {
+
+	// 权限IDs
+	PermissionIds []string     `json:"permission_ids"`
+	Policies      []ItemPolicy `json:"policies"`
+}
+
 // 域标识,可自定义用于区分哪个平台使用
 type ItemTenant string
 
@@ -246,6 +286,22 @@ type User struct {
 	// 用户唯一标识,由认证服务或者第三方服务提供的唯一标识
 	Uuid string `json:"uuid"`
 }
+
+// UserAllRelationsResponse defines model for UserAllRelationsResponse.
+type UserAllRelationsResponse struct {
+
+	// 分组IDs
+	GroupItems []ItemRelation `json:"group_items"`
+
+	// 节点IDs
+	NodeItems []ItemRelation `json:"node_items"`
+
+	// 权限IDs
+	PermissionItems []ItemRelation `json:"permission_items"`
+}
+
+// UserAllRoutesResponse defines model for UserAllRoutesResponse.
+type UserAllRoutesResponse ItemRoute
 
 // UserInfoResponse defines model for UserInfoResponse.
 type UserInfoResponse struct {

@@ -184,6 +184,12 @@ type ClientInterface interface {
 	PatchUsersUuidTenantWithBody(ctx context.Context, uuid string, tenant string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	PatchUsersUuidTenant(ctx context.Context, uuid string, tenant string, body PatchUsersUuidTenantJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetUsersUuidTenantRelations request  with any body
+	GetUsersUuidTenantRelationsWithBody(ctx context.Context, uuid string, tenant string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetUsersUuidTenantRoutes request  with any body
+	GetUsersUuidTenantRoutesWithBody(ctx context.Context, uuid string, tenant string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GetGroupsWithBody(ctx context.Context, params *GetGroupsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -596,6 +602,30 @@ func (c *Client) PatchUsersUuidTenantWithBody(ctx context.Context, uuid string, 
 
 func (c *Client) PatchUsersUuidTenant(ctx context.Context, uuid string, tenant string, body PatchUsersUuidTenantJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPatchUsersUuidTenantRequest(c.Server, uuid, tenant, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetUsersUuidTenantRelationsWithBody(ctx context.Context, uuid string, tenant string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetUsersUuidTenantRelationsRequestWithBody(c.Server, uuid, tenant, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetUsersUuidTenantRoutesWithBody(ctx context.Context, uuid string, tenant string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetUsersUuidTenantRoutesRequestWithBody(c.Server, uuid, tenant, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2097,6 +2127,92 @@ func NewPatchUsersUuidTenantRequestWithBody(server string, uuid string, tenant s
 	return req, nil
 }
 
+// NewGetUsersUuidTenantRelationsRequestWithBody generates requests for GetUsersUuidTenantRelations with any type of body
+func NewGetUsersUuidTenantRelationsRequestWithBody(server string, uuid string, tenant string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "tenant", runtime.ParamLocationPath, tenant)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/%s/%s/relations", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = operationPath[1:]
+	}
+	operationURL := url.URL{
+		Path: operationPath,
+	}
+
+	queryURL := serverURL.ResolveReference(&operationURL)
+
+	req, err := http.NewRequest("GET", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetUsersUuidTenantRoutesRequestWithBody generates requests for GetUsersUuidTenantRoutes with any type of body
+func NewGetUsersUuidTenantRoutesRequestWithBody(server string, uuid string, tenant string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "tenant", runtime.ParamLocationPath, tenant)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/%s/%s/routes", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = operationPath[1:]
+	}
+	operationURL := url.URL{
+		Path: operationPath,
+	}
+
+	queryURL := serverURL.ResolveReference(&operationURL)
+
+	req, err := http.NewRequest("GET", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -2234,6 +2350,12 @@ type ClientWithResponsesInterface interface {
 	PatchUsersUuidTenantWithBodyWithResponse(ctx context.Context, uuid string, tenant string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchUsersUuidTenantResponse, error)
 
 	PatchUsersUuidTenantWithResponse(ctx context.Context, uuid string, tenant string, body PatchUsersUuidTenantJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchUsersUuidTenantResponse, error)
+
+	// GetUsersUuidTenantRelations request  with any body
+	GetUsersUuidTenantRelationsWithBodyWithResponse(ctx context.Context, uuid string, tenant string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetUsersUuidTenantRelationsResponse, error)
+
+	// GetUsersUuidTenantRoutes request  with any body
+	GetUsersUuidTenantRoutesWithBodyWithResponse(ctx context.Context, uuid string, tenant string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetUsersUuidTenantRoutesResponse, error)
 }
 
 type GetGroupsResponse struct {
@@ -2883,6 +3005,50 @@ func (r PatchUsersUuidTenantResponse) StatusCode() int {
 	return 0
 }
 
+type GetUsersUuidTenantRelationsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *UserAllRelationsResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetUsersUuidTenantRelationsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetUsersUuidTenantRelationsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetUsersUuidTenantRoutesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *UserAllRoutesResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetUsersUuidTenantRoutesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetUsersUuidTenantRoutesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // GetGroupsWithBodyWithResponse request with arbitrary body returning *GetGroupsResponse
 func (c *ClientWithResponses) GetGroupsWithBodyWithResponse(ctx context.Context, params *GetGroupsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetGroupsResponse, error) {
 	rsp, err := c.GetGroupsWithBody(ctx, params, contentType, body, reqEditors...)
@@ -3186,6 +3352,24 @@ func (c *ClientWithResponses) PatchUsersUuidTenantWithResponse(ctx context.Conte
 		return nil, err
 	}
 	return ParsePatchUsersUuidTenantResponse(rsp)
+}
+
+// GetUsersUuidTenantRelationsWithBodyWithResponse request with arbitrary body returning *GetUsersUuidTenantRelationsResponse
+func (c *ClientWithResponses) GetUsersUuidTenantRelationsWithBodyWithResponse(ctx context.Context, uuid string, tenant string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetUsersUuidTenantRelationsResponse, error) {
+	rsp, err := c.GetUsersUuidTenantRelationsWithBody(ctx, uuid, tenant, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetUsersUuidTenantRelationsResponse(rsp)
+}
+
+// GetUsersUuidTenantRoutesWithBodyWithResponse request with arbitrary body returning *GetUsersUuidTenantRoutesResponse
+func (c *ClientWithResponses) GetUsersUuidTenantRoutesWithBodyWithResponse(ctx context.Context, uuid string, tenant string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetUsersUuidTenantRoutesResponse, error) {
+	rsp, err := c.GetUsersUuidTenantRoutesWithBody(ctx, uuid, tenant, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetUsersUuidTenantRoutesResponse(rsp)
 }
 
 // ParseGetGroupsResponse parses an HTTP response from a GetGroupsWithResponse call
@@ -3931,6 +4115,58 @@ func ParsePatchUsersUuidTenantResponse(rsp *http.Response) (*PatchUsersUuidTenan
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest UserInfoResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetUsersUuidTenantRelationsResponse parses an HTTP response from a GetUsersUuidTenantRelationsWithResponse call
+func ParseGetUsersUuidTenantRelationsResponse(rsp *http.Response) (*GetUsersUuidTenantRelationsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetUsersUuidTenantRelationsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest UserAllRelationsResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetUsersUuidTenantRoutesResponse parses an HTTP response from a GetUsersUuidTenantRoutesWithResponse call
+func ParseGetUsersUuidTenantRoutesResponse(rsp *http.Response) (*GetUsersUuidTenantRoutesResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetUsersUuidTenantRoutesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest UserAllRoutesResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
