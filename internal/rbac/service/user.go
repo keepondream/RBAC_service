@@ -33,7 +33,8 @@ func (s *User) Create(ctx context.Context, params ports.PostUsersJSONBody) (*por
 	if err != nil {
 		return nil, err
 	}
-	// TODO: sync
+
+	s.SyncCasbinForUser(ctx, res.Uuid, string(res.Tenant))
 
 	return res, nil
 }
@@ -65,8 +66,8 @@ func (s *User) DeleteByUuid(ctx context.Context, tenant string, uuid string) err
 		return err
 	}
 
-	// TODO:
-	_ = res
+	s.SyncCasbinForUser(ctx, res.Uuid, string(res.Tenant))
+
 	return nil
 }
 
@@ -82,7 +83,7 @@ func (s *User) Update(ctx context.Context, params ports.PatchUsersUuidTenantJSON
 		return nil, err
 	}
 
-	_ = res
+	s.SyncCasbinForUser(ctx, res.Uuid, string(res.Tenant))
 
 	return res, nil
 }

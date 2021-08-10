@@ -8,12 +8,14 @@ import (
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/group"
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/node"
 	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/permission"
+	"github.com/keepondream/RBAC_service/internal/rbac/adapters/ent/user"
 	"github.com/spf13/cast"
 )
 
 const (
 	NODEPREFIX  = "node:"  // casbin 中 node节点前缀
 	GROUPPREFIX = "group:" // casbin 中 分组前缀
+	USERPREFIX  = "user:"  // casbin 中 用户前缀
 )
 
 // SyncPolicyForPermission 同步权限对应的策略,这是鉴权最底层的核心, policy 策略层
@@ -123,6 +125,68 @@ func (s *Service) SyncCasbinForGroup(ctx context.Context, group_id, tenant strin
 	for _, childrenModel := range groupModel.Edges.Children {
 		childrenPrefix := fmt.Sprintf("%s%d", GROUPPREFIX, childrenModel.ID)
 		s.CasbinE.AddRoleForUserInDomain(childrenPrefix, prefix, tenant)
+	}
+
+	return nil
+}
+
+// SyncCasbinForUser 同步用户的权限,角色,菜单,角色组,父级,子级等等...所有关系
+func (s *Service) SyncCasbinForUser(ctx context.Context, uuid, tenant string) error {
+	prefix := fmt.Sprintf("%s%s", USERPREFIX, uuid)
+	// 清除用户的所属关系(拥有关系即拥有的权限,拥有的角色,拥有的菜单,拥有的角色组,拥有的菜单组等等...)
+	s.CasbinE.DeleteRolesForUserInDomain(prefix, tenant)
+
+	// 清除用户的child关系(子级关系)
+	s.CasbinE.RemoveFilteredPolicy(1, prefix)
+
+	// 获取用户的所有关系图
+	userModel, err := s.EntClient.User.Query().
+		WithParent(func(uq *ent.UserQuery) {
+			user.Tenant(tenant)
+		}).
+		WithChildren(func(uq *ent.UserQuery) {
+			user.Tenant(tenant)
+		}).
+		WithNodes(func(nq *ent.NodeQuery) {
+			node.Tenant(tenant)
+		}).
+		WithGroups(func(gq *ent.GroupQuery) {
+			group.Tenant(tenant)
+		}).
+		WithPermissions(func(pq *ent.PermissionQuery) {
+			permission.Tenant(tenant)
+		}).Where(user.UUID(uuid)).Where(user.Tenant(tenant)).First(ctx)
+	if err != nil {
+		return err
+	}
+
+	// 绑定父级关系
+	if userModel.Edges.Parent != nil {
+		parentPrefix := fmt.Sprintf("%s%d", USERPREFIX, userModel.Edges.Parent.ID)
+		s.CasbinE.AddRoleForUserInDomain(prefix, parentPrefix, tenant)
+	}
+
+	// 绑定子级关系
+	for _, childrenModel := range userModel.Edges.Children {
+		childrenPrefix := fmt.Sprintf("%s%d", USERPREFIX, childrenModel.ID)
+		s.CasbinE.AddRoleForUserInDomain(childrenPrefix, prefix, tenant)
+	}
+
+	// 绑定节点关系
+	for _, nodeModel := range userModel.Edges.Nodes {
+		nodePrefix := fmt.Sprintf("%s%d", NODEPREFIX, nodeModel.ID)
+		s.CasbinE.AddRoleForUserInDomain(prefix, nodePrefix, tenant)
+	}
+
+	// 绑定权限关系
+	for _, permissionModel := range userModel.Edges.Permissions {
+		s.CasbinE.AddRoleForUserInDomain(prefix, cast.ToString(permissionModel.ID), tenant)
+	}
+
+	// 绑定分组关系
+	for _, groupModel := range userModel.Edges.Groups {
+		groupPrefix := fmt.Sprintf("%s%d", GROUPPREFIX, groupModel.ID)
+		s.CasbinE.AddRoleForUserInDomain(prefix, groupPrefix, tenant)
 	}
 
 	return nil
