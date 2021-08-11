@@ -104,7 +104,8 @@
                   },
                   "uri": {
                     "type": "string",
-                    "description": "路由路径,拦截URL,path 例如: /users/:id"
+                    "description": "路由路径,拦截URL,path 例如: /users/:id",
+                    "minLength": 1
                   },
                   "tenant": {
                     "$ref": "#/components/schemas/ItemTenant"
@@ -210,11 +211,13 @@
                   },
                   "name": {
                     "type": "string",
-                    "description": "路由名称"
+                    "description": "路由名称",
+                    "minLength": 1
                   },
                   "uri": {
                     "type": "string",
-                    "description": "路由路径,path,拦截URL"
+                    "description": "路由路径,path,拦截URL",
+                    "minLength": 1
                   },
                   "method": {
                     "$ref": "#/components/schemas/ItemMethod"
@@ -330,7 +333,8 @@
                 "properties": {
                   "name": {
                     "type": "string",
-                    "description": "权限名称"
+                    "description": "权限名称",
+                    "minLength": 1
                   },
                   "route_ids": {
                     "type": "array",
@@ -429,7 +433,8 @@
                 "properties": {
                   "name": {
                     "type": "string",
-                    "description": "权限名称"
+                    "description": "权限名称",
+                    "minLength": 1
                   },
                   "route_ids": {
                     "type": "array",
@@ -546,11 +551,13 @@
                 "properties": {
                   "name": {
                     "type": "string",
-                    "description": "名称"
+                    "description": "名称",
+                    "minLength": 1
                   },
                   "parent_id": {
                     "type": "string",
-                    "description": "父级ID,非必填选项"
+                    "description": "父级ID,非必填选项",
+                    "minLength": 1
                   },
                   "permission_ids": {
                     "type": "array",
@@ -647,7 +654,8 @@
                 "properties": {
                   "name": {
                     "type": "string",
-                    "description": "名称"
+                    "description": "名称",
+                    "minLength": 1
                   },
                   "parent_id": {
                     "type": "string",
@@ -672,7 +680,8 @@
                 }
               }
             }
-          }
+          },
+          "description": ""
         },
         "tags": [
           "node"
@@ -779,7 +788,8 @@
                 "properties": {
                   "name": {
                     "type": "string",
-                    "description": "名称"
+                    "description": "名称",
+                    "minLength": 1
                   },
                   "tenant": {
                     "$ref": "#/components/schemas/ItemTenant"
@@ -799,7 +809,8 @@
                   },
                   "parent_id": {
                     "type": "string",
-                    "description": "父级ID,非必填选项"
+                    "description": "父级ID,非必填选项",
+                    "minLength": 1
                   }
                 },
                 "required": [
@@ -883,7 +894,8 @@
                 "properties": {
                   "name": {
                     "type": "string",
-                    "description": "名称"
+                    "description": "名称",
+                    "minLength": 1
                   },
                   "tenant": {
                     "$ref": "#/components/schemas/ItemTenant"
@@ -1018,7 +1030,8 @@
                   },
                   "parent_id": {
                     "type": "string",
-                    "description": "父级ID"
+                    "description": "父级ID",
+                    "minLength": 1
                   },
                   "node_ids": {
                     "type": "array",
@@ -1713,8 +1726,8 @@
         ]
       },
       "ItemMethod": {
-        "title": "ItemMethod",
         "type": "string",
+        "title": "ItemMethod",
         "description": "URL请求方式 GET,HEAD,POST,PUT,PATCH,DELETE,CONNECT,OPTIONS,TRACE",
         "enum": [
           "GET",
@@ -1728,13 +1741,15 @@
           "TRACE"
         ],
         "example": "GET",
-        "default": "GET"
+        "default": "GET",
+        "minLength": 1
       },
       "ItemTenant": {
-        "title": "ItemTenant",
         "type": "string",
+        "title": "ItemTenant",
         "description": "域标识,可自定义用于区分哪个平台使用",
-        "example": "domain1"
+        "example": "domain1",
+        "minLength": 1
       },
       "ItemData": {
         "title": "ItemData",
@@ -1755,10 +1770,11 @@
         "description": "自定义json对象或者数组json"
       },
       "ItemType": {
-        "title": "ItemType",
         "type": "string",
+        "title": "ItemType",
         "description": "节点或者分组的类型可自定义 例如 role:角色, menu:菜单, element:页面元素 ...等等",
-        "example": "role"
+        "example": "role",
+        "minLength": 1
       },
       "ErrCode": {
         "type": "string",
@@ -2000,7 +2016,8 @@
         "schema": {
           "type": "string",
           "default": "1",
-          "example": "1"
+          "example": "1",
+          "minLength": 1
         },
         "description": "页码"
       },
@@ -2027,7 +2044,8 @@
             "desc"
           ],
           "default": "desc",
-          "example": "desc"
+          "example": "desc",
+          "minLength": 1
         },
         "description": "排序方式 只支持 asc 或者 desc"
       },

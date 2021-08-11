@@ -13,7 +13,7 @@ rbacEnt:
 
 openapi_http:
 	oapi-codegen -generate types -o internal/rbac/ports/openapi_types.gen.go -package ports api/openapi/reference/rbac-api.json
-	oapi-codegen -generate chi-server -o internal/rbac/ports/openapi_api.gen.go -package ports api/openapi/reference/rbac-api.json
+	oapi-codegen -generate chi-server,spec -o internal/rbac/ports/openapi_api.gen.go -package ports api/openapi/reference/rbac-api.json
 	oapi-codegen -generate types -o internal/common/client/rbac/openapi_types.gen.go -package rbac api/openapi/reference/rbac-api.json
 	oapi-codegen -generate client -o internal/common/client/rbac/openapi_client.gen.go -package rbac api/openapi/reference/rbac-api.json
 
