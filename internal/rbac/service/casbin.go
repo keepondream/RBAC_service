@@ -18,6 +18,23 @@ const (
 	USERPREFIX  = "user:"  // casbin 中 用户前缀
 )
 
+// 路由是系统粒度最细的核心, 所有路由的创建,更新,删除,都需要同步casbin,先清除所有拥有当前路由的策略,再同步对应的权限的所有策略
+func (s *Service) SyncCasbinForRoute(ctx context.Context, tenant, uri, method, route_id string) error {
+	// 清除所有拥有当前路由的策略
+	s.CasbinE.RemoveFilteredPolicy(1, tenant, uri, method)
+	// 获取当前路由的所有权限IDS,同步对一个权限的策略
+	routeModel, err := s.EntClient.Route.Get(ctx, cast.ToInt(route_id))
+	if err != nil {
+		return err
+	}
+
+	for _, permission_id := range routeModel.QueryPermissions().IDsX(ctx) {
+		s.SyncPolicyForPermission(ctx, cast.ToString(permission_id))
+	}
+
+	return nil
+}
+
 // SyncPolicyForPermission 同步权限对应的策略,这是鉴权最底层的核心, policy 策略层
 func (s *Service) SyncPolicyForPermission(ctx context.Context, permission_id string) error {
 	// 清除当前权限所有的策略
