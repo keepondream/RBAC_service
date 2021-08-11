@@ -88,6 +88,9 @@ type ServerInterface interface {
 	// 更新绑定用户(角色,权限,子级,父级,分组等等)
 	// (PATCH /users/{uuid}/{tenant})
 	PatchUsersUuidTenant(w http.ResponseWriter, r *http.Request, uuid string, tenant string)
+	// 鉴权用户路由权限
+	// (POST /users/{uuid}/{tenant}/enforce)
+	PostUsersUuidTenantEnforce(w http.ResponseWriter, r *http.Request, uuid string, tenant string)
 	// 获取用户所有的关系图(节点,分组,权限)
 	// (GET /users/{uuid}/{tenant}/relations)
 	GetUsersUuidTenantRelations(w http.ResponseWriter, r *http.Request, uuid string, tenant string)
@@ -1111,6 +1114,41 @@ func (siw *ServerInterfaceWrapper) PatchUsersUuidTenant(w http.ResponseWriter, r
 	handler(w, r.WithContext(ctx))
 }
 
+// PostUsersUuidTenantEnforce operation middleware
+func (siw *ServerInterfaceWrapper) PostUsersUuidTenantEnforce(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "uuid" -------------
+	var uuid string
+
+	err = runtime.BindStyledParameter("simple", false, "uuid", chi.URLParam(r, "uuid"), &uuid)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter uuid: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "tenant" -------------
+	var tenant string
+
+	err = runtime.BindStyledParameter("simple", false, "tenant", chi.URLParam(r, "tenant"), &tenant)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid format for parameter tenant: %s", err), http.StatusBadRequest)
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostUsersUuidTenantEnforce(w, r, uuid, tenant)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
 // GetUsersUuidTenantRelations operation middleware
 func (siw *ServerInterfaceWrapper) GetUsersUuidTenantRelations(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -1292,6 +1330,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Patch(options.BaseURL+"/users/{uuid}/{tenant}", wrapper.PatchUsersUuidTenant)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/users/{uuid}/{tenant}/enforce", wrapper.PostUsersUuidTenantEnforce)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/users/{uuid}/{tenant}/relations", wrapper.GetUsersUuidTenantRelations)

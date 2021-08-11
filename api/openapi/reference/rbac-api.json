@@ -99,7 +99,8 @@
                 "properties": {
                   "name": {
                     "type": "string",
-                    "description": "路由名称"
+                    "description": "路由名称",
+                    "minLength": 1
                   },
                   "uri": {
                     "type": "string",
@@ -1197,7 +1198,8 @@
           },
           "name": "uuid",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "用户唯一标识UUID"
         },
         {
           "schema": {
@@ -1205,7 +1207,8 @@
           },
           "name": "tenant",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "用户所属域标识"
         }
       ],
       "get": {
@@ -1236,7 +1239,8 @@
                 "properties": {}
               }
             }
-          }
+          },
+          "description": ""
         }
       }
     },
@@ -1248,7 +1252,8 @@
           },
           "name": "uuid",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "用户唯一标识UUID"
         },
         {
           "schema": {
@@ -1256,7 +1261,8 @@
           },
           "name": "tenant",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "用户所属域标识"
         }
       ],
       "get": {
@@ -1288,6 +1294,73 @@
           }
         },
         "description": "获取用户所有的关系图(节点,分组,权限)\n节点,分组根据自定义type区分(角色/菜单/页面元素等等...)"
+      }
+    },
+    "/users/{uuid}/{tenant}/enforce": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "uuid",
+          "in": "path",
+          "required": true,
+          "description": "用户唯一标识UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tenant",
+          "in": "path",
+          "required": true,
+          "description": "用户所属域标识"
+        }
+      ],
+      "post": {
+        "summary": "鉴权用户路由权限",
+        "operationId": "post-users-uuid-tenant-enforce",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "tags": [
+          "user"
+        ],
+        "description": "鉴权用户路由权限",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "uri": {
+                    "type": "string",
+                    "description": "路由path",
+                    "minLength": 1
+                  },
+                  "method": {
+                    "$ref": "#/components/schemas/ItemMethod"
+                  }
+                },
+                "required": [
+                  "uri",
+                  "method"
+                ]
+              }
+            }
+          }
+        }
       }
     }
   },

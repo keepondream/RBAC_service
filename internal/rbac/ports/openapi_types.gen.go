@@ -712,6 +712,16 @@ type PatchUsersUuidTenantJSONBody struct {
 	Tenant *ItemTenant `json:"tenant,omitempty"`
 }
 
+// PostUsersUuidTenantEnforceJSONBody defines parameters for PostUsersUuidTenantEnforce.
+type PostUsersUuidTenantEnforceJSONBody struct {
+
+	// URL请求方式 GET,HEAD,POST,PUT,PATCH,DELETE,CONNECT,OPTIONS,TRACE
+	Method ItemMethod `json:"method"`
+
+	// 路由path
+	Uri string `json:"uri"`
+}
+
 // PostGroupsJSONRequestBody defines body for PostGroups for application/json ContentType.
 type PostGroupsJSONRequestBody PostGroupsJSONBody
 
@@ -741,3 +751,6 @@ type PostUsersJSONRequestBody PostUsersJSONBody
 
 // PatchUsersUuidTenantJSONRequestBody defines body for PatchUsersUuidTenant for application/json ContentType.
 type PatchUsersUuidTenantJSONRequestBody PatchUsersUuidTenantJSONBody
+
+// PostUsersUuidTenantEnforceJSONRequestBody defines body for PostUsersUuidTenantEnforce for application/json ContentType.
+type PostUsersUuidTenantEnforceJSONRequestBody PostUsersUuidTenantEnforceJSONBody

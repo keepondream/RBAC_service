@@ -178,3 +178,28 @@ func (s *User) GetAllRelations(ctx context.Context, tenant string, uuid string) 
 
 	return &resp, nil
 }
+
+func (s *User) CheckEnforce(ctx context.Context, tenant string, uuid string, uri string, method string) error {
+	prefix := fmt.Sprintf("%s%s", USERPREFIX, uuid)
+	// 优先使用casbin鉴权,基于内存运算速度快,微秒级
+	pass, err := s.CasbinE.Enforce(prefix, tenant, uri, strings.ToUpper(method))
+	if err != nil {
+		return err
+	}
+
+	if pass {
+		return nil
+	}
+
+	// casbin鉴权失败后判断是否是超管,毫秒级
+	userModel, err := s.GetByUuid(ctx, tenant, uuid)
+	if err != nil {
+		return err
+	}
+
+	if userModel.IsSuper {
+		return nil
+	}
+
+	return fmt.Errorf("Permission denied")
+}

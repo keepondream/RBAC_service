@@ -185,6 +185,11 @@ type ClientInterface interface {
 
 	PatchUsersUuidTenant(ctx context.Context, uuid string, tenant string, body PatchUsersUuidTenantJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// PostUsersUuidTenantEnforce request  with any body
+	PostUsersUuidTenantEnforceWithBody(ctx context.Context, uuid string, tenant string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PostUsersUuidTenantEnforce(ctx context.Context, uuid string, tenant string, body PostUsersUuidTenantEnforceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetUsersUuidTenantRelations request  with any body
 	GetUsersUuidTenantRelationsWithBody(ctx context.Context, uuid string, tenant string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -602,6 +607,30 @@ func (c *Client) PatchUsersUuidTenantWithBody(ctx context.Context, uuid string, 
 
 func (c *Client) PatchUsersUuidTenant(ctx context.Context, uuid string, tenant string, body PatchUsersUuidTenantJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPatchUsersUuidTenantRequest(c.Server, uuid, tenant, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostUsersUuidTenantEnforceWithBody(ctx context.Context, uuid string, tenant string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostUsersUuidTenantEnforceRequestWithBody(c.Server, uuid, tenant, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostUsersUuidTenantEnforce(ctx context.Context, uuid string, tenant string, body PostUsersUuidTenantEnforceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostUsersUuidTenantEnforceRequest(c.Server, uuid, tenant, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2127,6 +2156,60 @@ func NewPatchUsersUuidTenantRequestWithBody(server string, uuid string, tenant s
 	return req, nil
 }
 
+// NewPostUsersUuidTenantEnforceRequest calls the generic PostUsersUuidTenantEnforce builder with application/json body
+func NewPostUsersUuidTenantEnforceRequest(server string, uuid string, tenant string, body PostUsersUuidTenantEnforceJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostUsersUuidTenantEnforceRequestWithBody(server, uuid, tenant, "application/json", bodyReader)
+}
+
+// NewPostUsersUuidTenantEnforceRequestWithBody generates requests for PostUsersUuidTenantEnforce with any type of body
+func NewPostUsersUuidTenantEnforceRequestWithBody(server string, uuid string, tenant string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "tenant", runtime.ParamLocationPath, tenant)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/%s/%s/enforce", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = operationPath[1:]
+	}
+	operationURL := url.URL{
+		Path: operationPath,
+	}
+
+	queryURL := serverURL.ResolveReference(&operationURL)
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetUsersUuidTenantRelationsRequestWithBody generates requests for GetUsersUuidTenantRelations with any type of body
 func NewGetUsersUuidTenantRelationsRequestWithBody(server string, uuid string, tenant string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
@@ -2350,6 +2433,11 @@ type ClientWithResponsesInterface interface {
 	PatchUsersUuidTenantWithBodyWithResponse(ctx context.Context, uuid string, tenant string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PatchUsersUuidTenantResponse, error)
 
 	PatchUsersUuidTenantWithResponse(ctx context.Context, uuid string, tenant string, body PatchUsersUuidTenantJSONRequestBody, reqEditors ...RequestEditorFn) (*PatchUsersUuidTenantResponse, error)
+
+	// PostUsersUuidTenantEnforce request  with any body
+	PostUsersUuidTenantEnforceWithBodyWithResponse(ctx context.Context, uuid string, tenant string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostUsersUuidTenantEnforceResponse, error)
+
+	PostUsersUuidTenantEnforceWithResponse(ctx context.Context, uuid string, tenant string, body PostUsersUuidTenantEnforceJSONRequestBody, reqEditors ...RequestEditorFn) (*PostUsersUuidTenantEnforceResponse, error)
 
 	// GetUsersUuidTenantRelations request  with any body
 	GetUsersUuidTenantRelationsWithBodyWithResponse(ctx context.Context, uuid string, tenant string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetUsersUuidTenantRelationsResponse, error)
@@ -3005,6 +3093,27 @@ func (r PatchUsersUuidTenantResponse) StatusCode() int {
 	return 0
 }
 
+type PostUsersUuidTenantEnforceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r PostUsersUuidTenantEnforceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostUsersUuidTenantEnforceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetUsersUuidTenantRelationsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -3352,6 +3461,23 @@ func (c *ClientWithResponses) PatchUsersUuidTenantWithResponse(ctx context.Conte
 		return nil, err
 	}
 	return ParsePatchUsersUuidTenantResponse(rsp)
+}
+
+// PostUsersUuidTenantEnforceWithBodyWithResponse request with arbitrary body returning *PostUsersUuidTenantEnforceResponse
+func (c *ClientWithResponses) PostUsersUuidTenantEnforceWithBodyWithResponse(ctx context.Context, uuid string, tenant string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostUsersUuidTenantEnforceResponse, error) {
+	rsp, err := c.PostUsersUuidTenantEnforceWithBody(ctx, uuid, tenant, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostUsersUuidTenantEnforceResponse(rsp)
+}
+
+func (c *ClientWithResponses) PostUsersUuidTenantEnforceWithResponse(ctx context.Context, uuid string, tenant string, body PostUsersUuidTenantEnforceJSONRequestBody, reqEditors ...RequestEditorFn) (*PostUsersUuidTenantEnforceResponse, error) {
+	rsp, err := c.PostUsersUuidTenantEnforce(ctx, uuid, tenant, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostUsersUuidTenantEnforceResponse(rsp)
 }
 
 // GetUsersUuidTenantRelationsWithBodyWithResponse request with arbitrary body returning *GetUsersUuidTenantRelationsResponse
@@ -4120,6 +4246,25 @@ func ParsePatchUsersUuidTenantResponse(rsp *http.Response) (*PatchUsersUuidTenan
 		}
 		response.JSON200 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParsePostUsersUuidTenantEnforceResponse parses an HTTP response from a PostUsersUuidTenantEnforceWithResponse call
+func ParsePostUsersUuidTenantEnforceResponse(rsp *http.Response) (*PostUsersUuidTenantEnforceResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostUsersUuidTenantEnforceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
 	}
 
 	return response, nil

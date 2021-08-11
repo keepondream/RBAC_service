@@ -19,6 +19,7 @@ type Userer interface {
 	Update(ctx context.Context, params PatchUsersUuidTenantJSONBody, tenant, uuid string) (*UserInfoResponse, error)
 	GetAllRoutes(ctx context.Context, tenant, uuid string) (*UserAllRoutesResponse, error)
 	GetAllRelations(ctx context.Context, tenant, uuid string) (*UserAllRelationsResponse, error)
+	CheckEnforce(ctx context.Context, tenant, uuid, uri, method string) error
 }
 
 // 绑定用户列表
@@ -166,4 +167,23 @@ func (h *HttpServer) GetUsersUuidTenantRoutes(w http.ResponseWriter, r *http.Req
 	}
 
 	utils.Render(w, r, 200, utils.WithData(res))
+}
+
+// 鉴权用户路由权限
+// (POST /users/{uuid}/{tenant}/enforce)
+func (h *HttpServer) PostUsersUuidTenantEnforce(w http.ResponseWriter, r *http.Request, uuid string, tenant string) {
+	var params PostUsersUuidTenantEnforceJSONRequestBody
+	err := json.NewDecoder(r.Body).Decode(&params)
+	if err != nil {
+		utils.Render(w, r, 400, utils.WithError(err))
+		return
+	}
+
+	err = h.UserService.CheckEnforce(r.Context(), tenant, uuid, params.Uri, string(params.Method))
+	if err != nil {
+		utils.Render(w, r, 403, utils.WithError(err))
+		return
+	}
+
+	utils.Render(w, r, 204)
 }
